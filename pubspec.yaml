@@ -1,0 +1,44 @@
+name: jaagrat
+description: Ultra-minimalist on-device driver drowsiness alert system for Indian commercial fleets.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & State
+  provider: ^6.1.2
+  google_fonts: ^6.2.1
+
+  # Computer Vision & Hardware Sensors
+  camera: ^0.11.0+2
+  google_mlkit_face_mesh_detection: ^0.1.0
+  sensors_plus: ^6.0.1
+  geolocator: ^13.0.1
+  wakelock_plus: ^1.2.8
+
+  # Alerts & Haptics
+  audioplayers: ^6.0.0
+  vibration: ^2.0.0
+  flutter_tts: ^4.0.2
+
+  # Persistence & Backend Sync
+  shared_preferences: ^2.3.2
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
