@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jaagrat (जाग्रत) — Live Driver Drowsiness Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- MediaPipe Face Mesh & Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0a0a0c;
+      --surface: #141417;
+      --surface-elevated: #1e1e23;
+      --border: #2a2a30;
+      --text-primary: #ffffff;
+      --text-secondary: #9da0a8;
+      --text-tertiary: #60626a;
+      --accent-green: #10b981;
+      --accent-green-glow: rgba(16, 185, 129, 0.25);
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-red-glow: rgba(239, 68, 68, 0.4);
+      --oled-black: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* Top Global Header */
+    .app-header {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px var(--accent-green-glow);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .badge-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    /* Main Container Layout */
+    .workbench-layout {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .workbench-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    /* Smartphone Device Mockup Frame */
+    .phone-mockup {
+      width: 400px;
+      height: 820px;
+      background: #000000;
+      border-radius: 52px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 12px #26262b, 0 0 0 14px #1a1a1e;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-speaker {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 5px;
+      background: #333339;
+      border-radius: 4px;
+      z-index: 100;
+    }
+
+    .phone-camera-dot {
+      position: absolute;
+      top: 14px;
+      right: 120px;
+      width: 8px;
+      height: 8px;
+      background: #111115;
+      border-radius: 50%;
+      border: 1px solid #333339;
+      z-index: 100;
+    }
+
+    /* In-App Screens Container */
+    .app-screen-container {
+      width: 100%;
+      height: 100%;
+      padding-top: 36px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      top: 36px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 24px 20px;
+      display: none;
+      flex-direction: column;
+      background: var(--surface);
+      overflow-y: auto;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Screen 1: Language */
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .screen-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .language-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .lang-card {
+      background: var(--surface-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .lang-card:hover {
+      border-color: var(--accent-green);
+    }
+
+    .lang-card.selected {
+      background: #192620;
+      border-color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+    }
+
+    .lang-native {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .lang-english {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Buttons */
+    .primary-btn {
+      width: 100%;
+      height: 64px;
+      min-height: 64px;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      border-radius: 24px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+      margin-top: auto;
+    }
+
+    .primary-btn:hover {
+      background: #f0f0f2;
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    .primary-btn.green {
+      background: var(--accent-green);
+      color: #000000;
+      box-shadow: 0 6px 20px var(--accent-green-glow);
+    }
+
+    /* Screen 2: Auth */
+    .phone-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .country-code-pill {
+      background: var(--surface-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 0 16px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      font-size: 17px;
+      font-weight: 700;
+      gap: 6px;
+    }
+
+    .custom-input {
+      flex: 1;
+      height: 64px;
+      background: var(--surface-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 0 20px;
+      color: var(--text-primary);
+      font-size: 19px;
+      font-weight: 700;
+      outline: none;
+      letter-spacing: 1px;
+    }
+
+    .custom-input:focus {
+      border-color: var(--accent-green);
+    }
+
+    .otp-input {
+      width: 100%;
+      height: 68px;
+      background: var(--surface-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      text-align: center;
+      color: var(--accent-green);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 12px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+
+    /* Screen 3: Vehicle Setup */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* Screen 4: Calibration */
+    .camera-box {
+      width: 100%;
+      height: 380px;
+      background: #000000;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1.5px solid var(--border);
+    }
+
+    #webcam-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    #webcam-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    .oval-guide {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 270px;
+      border: 3px dashed var(--accent-amber);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .oval-guide.locked {
+      border: 3.5px solid var(--accent-green);
+      box-shadow: 0 0 30px var(--accent-green-glow);
+    }
+
+    .calibration-status-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    /* Screen 5: Active Drive OLED HUD */
+    .screen-active-drive {
+      background: var(--oled-black) !important;
+      padding: 24px 20px;
+      justify-content: space-between;
+    }
+
+    .drive-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .drive-status-capsule {
+      background: #141416;
+      border: 1px solid #242428;
+      padding: 8px 16px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .drive-speed-capsule {
+      background: #141416;
+      border: 1px solid #242428;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .drive-center-shield {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .shield-disc {
+      width: 90px;
+      height: 90px;
+      background: #111114;
+      border: 1.5px solid #26262c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+    }
+
+    .trip-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .drive-subtext {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      letter-spacing: 1.2px;
+    }
+
+    /* End Trip Long Press Button */
+    .hold-end-btn {
+      width: 100%;
+      height: 64px;
+      background: #161619;
+      border: 1.5px solid #282830;
+      border-radius: 24px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hold-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 0%;
+      background: rgba(239, 68, 68, 0.45);
+      transition: width 0.05s linear;
+    }
+
+    .hold-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Emergency Alert Modal */
+    .emergency-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.94);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      z-index: 50;
+      animation: alertPulse 0.6s infinite alternate;
+    }
+
+    .emergency-modal.visible {
+      display: flex;
+    }
+
+    @keyframes alertPulse {
+      from { box-shadow: inset 0 0 30px rgba(239, 68, 68, 0.4); }
+      to { box-shadow: inset 0 0 80px rgba(239, 68, 68, 0.9); }
+    }
+
+    .awake-btn {
+      width: 100%;
+      height: 84px;
+      background: var(--accent-green);
+      color: #000000;
+      border: none;
+      border-radius: 28px;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 0 40px var(--accent-green-glow);
+      animation: awakeScale 0.7s infinite alternate;
+    }
+
+    @keyframes awakeScale {
+      from { transform: scale(0.97); }
+      to { transform: scale(1.03); }
+    }
+
+    /* Right Side Hardware Test Workbench */
+    .workbench-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .bench-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .slider {
+      width: 100%;
+      accent-color: var(--accent-green);
+    }
+
+    .sim-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .sim-btn {
+      height: 48px;
+      background: #25252c;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .sim-btn:hover {
+      background: #2f2f38;
+      border-color: var(--accent-green);
+    }
+
+    .sim-btn.active-shock {
+      background: var(--accent-red);
+      color: #ffffff;
+      border-color: var(--accent-red);
+    }
+
+    /* Telemetry Log Box */
+    .log-box {
+      background: #0d0d10;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #34d399;
+      height: 140px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Global Bar -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">👁️</div>
+      <div>
+        <h1 class="brand-title">Jaagrat (जाग्रत)</h1>
+        <p class="brand-subtitle">Commercial Driver Drowsiness Alert System • Indian Fleets</p>
+      </div>
+    </div>
+    <div class="badge-pill">
+      <span class="badge-dot"></span>
+      <span>On-Device Computer Vision Active</span>
+    </div>
+  </header>
+
+  <!-- Workbench: Phone Mockup + Hardware Bench -->
+  <main class="workbench-layout">
+
+    <!-- 1. Phone Mockup Running App -->
+    <div class="phone-mockup">
+      <div class="phone-speaker"></div>
+      <div class="phone-camera-dot"></div>
+
+      <div class="app-screen-container">
+
+        <!-- SCREEN 1: Language Selection -->
+        <div id="screen-language" class="screen active">
+          <h2 class="screen-title">Select Language</h2>
+          <p class="screen-desc">Choose your language for voice alerts</p>
+
+          <div class="language-grid">
+            <div class="lang-card selected" onclick="selectLang('hi', 'हिन्दी', this)">
+              <span class="lang-native">हिन्दी</span>
+              <span class="lang-english">Hindi</span>
+            </div>
+            <div class="lang-card" onclick="selectLang('kn', 'ಕನ್ನಡ', this)">
+              <span class="lang-native">ಕನ್ನಡ</span>
+              <span class="lang-english">Kannada</span>
+            </div>
+            <div class="lang-card" onclick="selectLang('ta', 'தமிழ்', this)">
+              <span class="lang-native">தமிழ்</span>
+              <span class="lang-english">Tamil</span>
+            </div>
+            <div class="lang-card" onclick="selectLang('te', 'తెలుగు', this)">
+              <span class="lang-native">తెలుగు</span>
+              <span class="lang-english">Telugu</span>
+            </div>
+            <div class="lang-card" onclick="selectLang('mr', 'मराठी', this)">
+              <span class="lang-native">मराठी</span>
+              <span class="lang-english">Marathi</span>
+            </div>
+            <div class="lang-card" onclick="selectLang('en', 'English', this)">
+              <span class="lang-native">English</span>
+              <span class="lang-english">English</span>
+            </div>
+          </div>
+
+          <button class="primary-btn" onclick="goToScreen('screen-auth')">
+            CONTINUE (<span id="selected-lang-label">हिन्दी</span>)
+          </button>
+        </div>
+
+        <!-- SCREEN 2: Driver Auth -->
+        <div id="screen-auth" class="screen">
+          <h2 class="screen-title">Driver Login</h2>
+          <p class="screen-desc">Enter your 10-digit mobile number</p>
+
+          <div id="phone-step">
+            <div class="phone-input-row">
+              <div class="country-code-pill">🇮🇳 +91</div>
+              <input type="tel" id="driver-phone" class="custom-input" placeholder="98860 11204" value="98860 11204">
+            </div>
+            <button class="primary-btn" onclick="sendOtpSim()">GET OTP</button>
+          </div>
+
+          <div id="otp-step" style="display: none;">
+            <p class="screen-desc" style="color: var(--text-primary); margin-bottom: 12px;">Enter 6-digit OTP sent via SMS</p>
+            <input type="text" id="driver-otp" class="otp-input" value="123456" maxlength="6">
+            <button class="primary-btn green" onclick="goToScreen('screen-vehicle')">VERIFY & PROCEED</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 3: Vehicle Setup -->
+        <div id="screen-vehicle" class="screen">
+          <h2 class="screen-title">Vehicle Setup</h2>
+          <p class="screen-desc">Link today's vehicle & fleet owner</p>
+
+          <div class="input-group">
+            <label class="input-label">Vehicle Registration No.</label>
+            <input type="text" id="veh-num" class="custom-input" value="KA 01 AB 1234">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Fleet Owner Code</label>
+            <input type="text" id="fleet-code" class="custom-input" value="FLT-9021">
+          </div>
+
+          <button class="primary-btn" onclick="goToScreen('screen-calibration')">CONTINUE TO CALIBRATION</button>
+        </div>
+
+        <!-- SCREEN 4: Calibration -->
+        <div id="screen-calibration" class="screen">
+          <h2 class="screen-title">Face Alignment</h2>
+          <p class="screen-desc">Center your face in the oval guide</p>
+
+          <div class="camera-box">
+            <video id="webcam-video" autoplay playsinline muted></video>
+            <canvas id="webcam-canvas"></canvas>
+            <div id="oval-guide" class="oval-guide"></div>
+            <div id="calib-badge" class="calibration-status-badge">ALIGNING FACE...</div>
+          </div>
+
+          <button id="start-trip-btn" class="primary-btn" style="opacity: 0.5; pointer-events: none;" onclick="startActiveDrive()">
+            START TRIP
+          </button>
+        </div>
+
+        <!-- SCREEN 5: Active Drive OLED HUD -->
+        <div id="screen-active-drive" class="screen screen-active-drive">
+          <!-- Top HUD -->
+          <div class="drive-top-bar">
+            <div class="drive-status-capsule">
+              <span id="active-dot" class="badge-dot"></span>
+              <span id="active-status-text">MONITORING ACTIVE</span>
+            </div>
+            <div class="drive-speed-capsule">
+              <span id="speed-display">48</span> km/h
+            </div>
+          </div>
+
+          <!-- Center Zero-Distraction OLED Shield & Timer -->
+          <div class="drive-center-shield">
+            <div class="shield-disc">🛡️</div>
+            <div id="trip-clock" class="trip-clock">00:00:00</div>
+            <div class="drive-subtext">ON-DEVICE INFERENCE ACTIVE</div>
+          </div>
+
+          <!-- Bottom Long-Press End Trip Button -->
+          <button id="hold-btn" class="hold-end-btn" onmousedown="startHold(event)" onmouseup="cancelHold()" onmouseleave="cancelHold()" ontouchstart="startHold(event)" ontouchend="cancelHold()">
+            <div id="hold-fill" class="hold-fill"></div>
+            <span class="hold-text">HOLD TO END TRIP (2s)</span>
+          </button>
+        </div>
+
+        <!-- Emergency Alert Modal Overlay -->
+        <div id="emergency-modal" class="emergency-modal">
+          <div style="font-size: 56px; margin-bottom: 16px;">⚠️</div>
+          <h3 id="alert-title" style="font-size: 24px; font-weight: 900; margin-bottom: 8px; text-align: center;">MICROSLEEP DETECTED!</h3>
+          <p id="alert-subtitle" style="font-size: 15px; color: var(--text-secondary); margin-bottom: 40px; text-align: center;">Continuous eye closure detected</p>
+
+          <button class="awake-btn" onclick="driverDismissAwake()">
+            <span>✓</span> I AM AWAKE
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. Interactive Hardware Test Workbench -->
+    <div class="workbench-panel">
+      <h2 class="bench-title">
+        <span>🧪</span> Hardware & Sensor Test Bench
+      </h2>
+
+      <!-- GPS Speed Guard -->
+      <div class="control-card">
+        <div class="card-row">
+          <span class="card-label">GPS Speed Gate (< 10 km/h Standby)</span>
+          <span id="bench-speed-val" class="metric-value">48 km/h</span>
+        </div>
+        <input type="range" min="0" max="100" value="48" class="slider" id="speed-slider" oninput="updateGpsSpeed(this.value)">
+        <p style="font-size: 12px; color: var(--text-tertiary);">
+          When speed is below 10 km/h (traffic signals or parking), alarms are suppressed.
+        </p>
+      </div>
+
+      <!-- Accelerometer Shock Guard -->
+      <div class="control-card">
+        <div class="card-row">
+          <span class="card-label">Accelerometer Pothole Shock Gate</span>
+          <span id="shock-status-val" class="metric-value">1.0 G (Normal)</span>
+        </div>
+        <div class="sim-btn-row">
+          <button id="shock-btn" class="sim-btn" onclick="triggerPotholeShock()">
+            💥 Trigger Pothole (> 1.8G)
+          </button>
+          <button class="sim-btn" onclick="simulateEyeClosure()">
+            😴 Simulate Microsleep (1.2s)
+          </button>
+        </div>
+        <p style="font-size: 12px; color: var(--text-tertiary);">
+          Vertical shock > 1.8G suppresses face detection for 600ms to eliminate road bump false positives.
+        </p>
+      </div>
+
+      <!-- Real-time Metrics -->
+      <div class="control-card">
+        <div class="card-row">
+          <span class="card-label">Eye Aspect Ratio (EAR):</span>
+          <span id="metric-ear" class="metric-value">0.31</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Calibrated Threshold:</span>
+          <span id="metric-threshold" class="metric-value">0.21</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Rolling PERCLOS (60s):</span>
+          <span id="metric-perclos" class="metric-value">2.4%</span>
+        </div>
+      </div>
+
+      <!-- Firestore Event Telemetry Log -->
+      <div class="control-card">
+        <span class="card-label">Firestore Telemetry Sync (Collection: fatigue_events)</span>
+        <div id="telemetry-log" class="log-box">
+          [System Ready] Connected to on-device engine.
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // State
+    let currentLanguage = { code: 'hi', native: 'हिन्दी', prompt: 'कृपया ध्यान दें, सड़क पर नजर रखें।' };
+    let currentSpeed = 48;
+    let isShockActive = false;
+    let currentEar = 0.31;
+    let calibratedThreshold = 0.21;
+    let consecutiveClosedFrames = 0;
+    let perclosBuffer = [];
+    let isAlertActive = false;
+    let tripSeconds = 0;
+    let tripTimerInterval = null;
+    let holdTimer = null;
+    let audioCtx = null;
+    let sirenOsc = null;
+
+    // Language Selection
+    const regionalPrompts = {
+      hi: { native: 'हिन्दी', prompt: 'कृपया ध्यान दें, सड़क पर नजर रखें।' },
+      kn: { native: 'ಕನ್ನಡ', prompt: 'ದಯವಿಟ್ಟು ಎಚ್ಚರವಾಗಿರಿ, ರಸ್ತೆಯ ಮೇಲೆ ಗಮನವಿರಲಿ.' },
+      ta: { native: 'தமிழ்', prompt: 'தயவுசெய்து கவனமாக இருங்கள், சாலையில் கவனம் செலுத்துங்கள்.' },
+      te: { native: 'తెలుగు', prompt: 'దయచేసి అప్రమత్తంగా ఉండండి, రోడ్డుపై దృష్టి పెట్టండి.' },
+      mr: { native: 'मराठी', prompt: 'कृपया लक्ष द्या, रस्त्याकडे पहा.' },
+      en: { native: 'English', prompt: 'Attention! Please stay alert and focus on the road.' }
+    };
+
+    function selectLang(code, native, el) {
+      document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      currentLanguage = { code, native, prompt: regionalPrompts[code].prompt };
+      document.getElementById('selected-lang-label').innerText = native;
+    }
+
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+
+      if (screenId === 'screen-calibration') {
+        initWebcamAndCalibration();
+      }
+    }
+
+    function sendOtpSim() {
+      document.getElementById('phone-step').style.display = 'none';
+      document.getElementById('otp-step').style.display = 'block';
+    }
+
+    // Audio Alert Synthesizer
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playSoftChime() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function startEmergencySiren() {
+      try {
+        const ctx = getAudioContext();
+        if (sirenOsc) return;
+        sirenOsc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        sirenOsc.type = 'sawtooth';
+        sirenOsc.frequency.setValueAtTime(900, ctx.currentTime);
+
+        // Modulate pitch between 800Hz and 1400Hz
+        const lfo = ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(3.5, ctx.currentTime);
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.setValueAtTime(400, ctx.currentTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(sirenOsc.frequency);
+
+        gain.gain.setValueAtTime(0.7, ctx.currentTime);
+        sirenOsc.connect(gain);
+        gain.connect(ctx.destination);
+
+        lfo.start();
+        sirenOsc.start();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function stopEmergencySiren() {
+      if (sirenOsc) {
+        try {
+          sirenOsc.stop();
+          sirenOsc.disconnect();
+        } catch (e) {}
+        sirenOsc = null;
+      }
+    }
+
+    function speakRegionalVoice(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Camera & MediaPipe FaceMesh Initialization
+    let faceMesh = null;
+    let cameraInstance = null;
+
+    function initWebcamAndCalibration() {
+      const videoElement = document.getElementById('webcam-video');
+      const canvasElement = document.getElementById('webcam-canvas');
+      const ctx = canvasElement.getContext('2d');
+
+      faceMesh = new FaceMesh({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+      });
+
+      faceMesh.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+
+      let samples = [];
+
+      faceMesh.onResults((results) => {
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+          const landmarks = results.multiFaceLandmarks[0];
+
+          // Compute Eye Aspect Ratio (EAR)
+          const ear = calculateEar(landmarks);
+          currentEar = ear;
+          document.getElementById('metric-ear').innerText = ear.toFixed(2);
+
+          // If on calibration screen
+          if (document.getElementById('screen-calibration').classList.contains('active')) {
+            samples.push(ear);
+            if (samples.length >= 15) {
+              const avgEar = samples.reduce((a, b) => a + b) / samples.length;
+              calibratedThreshold = (avgEar * 0.70);
+              document.getElementById('metric-threshold').innerText = calibratedThreshold.toFixed(2);
+              document.getElementById('oval-guide').classList.add('locked');
+              document.getElementById('calib-badge').innerText = `LOCKED • BASELINE EAR ${avgEar.toFixed(2)}`;
+              document.getElementById('calib-badge').style.color = '#10b981';
+              const startBtn = document.getElementById('start-trip-btn');
+              startBtn.style.opacity = '1';
+              startBtn.style.pointerEvents = 'auto';
+              startBtn.classList.add('green');
+            }
+          }
+
+          // If on active drive screen
+          if (document.getElementById('screen-active-drive').classList.contains('active')) {
+            handleDriveFrame(ear);
+          }
+        }
+      });
+
+      cameraInstance = new Camera(videoElement, {
+        onFrame: async () => {
+          await faceMesh.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480
+      });
+
+      cameraInstance.start().catch((err) => {
+        console.warn('Webcam fallback (no camera attached or permission denied):', err);
+        // Simulator auto-lock fallback
+        setTimeout(() => {
+          document.getElementById('oval-guide').classList.add('locked');
+          document.getElementById('calib-badge').innerText = 'LOCKED (SIMULATOR) • BASELINE EAR 0.31';
+          document.getElementById('calib-badge').style.color = '#10b981';
+          const startBtn = document.getElementById('start-trip-btn');
+          startBtn.style.opacity = '1';
+          startBtn.style.pointerEvents = 'auto';
+          startBtn.classList.add('green');
+        }, 1500);
+      });
+    }
+
+    function calculateEar(pts) {
+      // Euclidean distance helper
+      const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+
+      // Left eye
+      const lV1 = dist(pts[160], pts[144]);
+      const lV2 = dist(pts[158], pts[153]);
+      const lH = dist(pts[33], pts[133]);
+      const lEar = (lV1 + lV2) / (2.0 * (lH || 1));
+
+      // Right eye
+      const rV1 = dist(pts[385], pts[380]);
+      const rV2 = dist(pts[387], pts[373]);
+      const rH = dist(pts[362], pts[263]);
+      const rEar = (rV1 + rV2) / (2.0 * (rH || 1));
+
+      return (lEar + rEar) / 2.0;
+    }
+
+    // Active Drive Logic & Sensor Gates
+    function startActiveDrive() {
+      goToScreen('screen-active-drive');
+      tripSeconds = 0;
+      tripTimerInterval = setInterval(() => {
+        tripSeconds++;
+        const hrs = String(Math.floor(tripSeconds / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((tripSeconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(tripSeconds % 60).padStart(2, '0');
+        document.getElementById('trip-clock').innerText = `${hrs}:${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function handleDriveFrame(ear) {
+      if (isShockActive) return;
+
+      const isClosed = ear < calibratedThreshold;
+
+      // 60-Second Rolling Buffer (PERCLOS)
+      perclosBuffer.push(isClosed ? 1 : 0);
+      if (perclosBuffer.length > 900) perclosBuffer.shift();
+      const closedRatio = perclosBuffer.filter(x => x === 1).length / perclosBuffer.length;
+      document.getElementById('metric-perclos').innerText = (closedRatio * 100).toFixed(1) + '%';
+
+      // Gate: Speed < 10 km/h suppresses alarms
+      if (currentSpeed < 10) {
+        document.getElementById('active-dot').style.background = '#f59e0b';
+        document.getElementById('active-status-text').innerText = 'STANDBY (<10 KM/H)';
+        consecutiveClosedFrames = 0;
+        return;
+      } else {
+        document.getElementById('active-dot').style.background = '#10b981';
+        document.getElementById('active-status-text').innerText = 'MONITORING ACTIVE';
+      }
+
+      // Microsleep check: 18 consecutive closed frames (~1.2s @ 15fps)
+      if (isClosed) {
+        consecutiveClosedFrames++;
+      } else {
+        consecutiveClosedFrames = 0;
+      }
+
+      if (consecutiveClosedFrames >= 18 && !isAlertActive) {
+        triggerAlert('LEVEL_2_MICROSLEEP', 'MICROSLEEP DETECTED!', 'Eyes closed > 1.2s while vehicle in motion');
+      } else if (perclosBuffer.length >= 300 && closedRatio >= 0.80 && !isAlertActive) {
+        triggerAlert('LEVEL_1_PERCLOS', 'DROWSINESS TREND!', '80% eye closure over rolling 60s');
+      }
+    }
+
+    function triggerAlert(type, title, subtitle) {
+      isAlertActive = true;
+      document.getElementById('alert-title').innerText = title;
+      document.getElementById('alert-subtitle').innerText = subtitle;
+      document.getElementById('emergency-modal').classList.add('visible');
+
+      if (type === 'LEVEL_2_MICROSLEEP') {
+        startEmergencySiren();
+      } else {
+        playSoftChime();
+        speakRegionalVoice(currentLanguage.prompt);
+      }
+
+      // Log to Firestore
+      logFirestoreTelemetry(type);
+    }
+
+    function driverDismissAwake() {
+      isAlertActive = false;
+      consecutiveClosedFrames = 0;
+      document.getElementById('emergency-modal').classList.remove('visible');
+      stopEmergencySiren();
+      window.speechSynthesis.cancel();
+      logFirestoreTelemetry('ALERT_DISMISSED_BY_DRIVER');
+    }
+
+    function logFirestoreTelemetry(eventType) {
+      const log = document.getElementById('telemetry-log');
+      const now = new Date().toLocaleTimeString();
+      const veh = document.getElementById('veh-num').value;
+      const phone = document.getElementById('driver-phone').value;
+      const json = {
+        driver_id: '+91' + phone,
+        vehicle_id: veh,
+        event: eventType,
+        speed_kmh: currentSpeed,
+        timestamp: now
+      };
+      log.innerHTML = `[${now}] Event synced: ${JSON.stringify(json)}<br>` + log.innerHTML;
+    }
+
+    // Hardware Simulator Sliders & Shock Buttons
+    function updateGpsSpeed(val) {
+      currentSpeed = parseInt(val);
+      document.getElementById('speed-display').innerText = currentSpeed;
+      document.getElementById('bench-speed-val').innerText = currentSpeed + ' km/h';
+
+      if (currentSpeed < 10) {
+        document.getElementById('active-dot').style.background = '#f59e0b';
+        document.getElementById('active-status-text').innerText = 'STANDBY (<10 KM/H)';
+      } else {
+        document.getElementById('active-dot').style.background = '#10b981';
+        document.getElementById('active-status-text').innerText = 'MONITORING ACTIVE';
+      }
+    }
+
+    function triggerPotholeShock() {
+      isShockActive = true;
+      document.getElementById('shock-status-val').innerText = '2.4 G (Pothole Shock!)';
+      document.getElementById('shock-status-val').style.color = '#ef4444';
+      document.getElementById('shock-btn').classList.add('active-shock');
+      document.getElementById('active-status-text').innerText = 'SHOCK FILTER (600ms)';
+      document.getElementById('active-dot').style.background = '#f59e0b';
+
+      setTimeout(() => {
+        isShockActive = false;
+        document.getElementById('shock-status-val').innerText = '1.0 G (Normal)';
+        document.getElementById('shock-status-val').style.color = '#ffffff';
+        document.getElementById('shock-btn').classList.remove('active-shock');
+        if (currentSpeed >= 10) {
+          document.getElementById('active-status-text').innerText = 'MONITORING ACTIVE';
+          document.getElementById('active-dot').style.background = '#10b981';
+        }
+      }, 600);
+    }
+
+    function simulateEyeClosure() {
+      currentEar = 0.12;
+      document.getElementById('metric-ear').innerText = '0.12';
+      consecutiveClosedFrames = 18;
+      handleDriveFrame(0.12);
+    }
+
+    // Long Press 2-second Hold to End Trip
+    function startHold(e) {
+      e.preventDefault();
+      const fill = document.getElementById('hold-fill');
+      fill.style.transition = 'width 2s linear';
+      fill.style.width = '100%';
+
+      holdTimer = setTimeout(() => {
+        // Complete trip
+        clearInterval(tripTimerInterval);
+        goToScreen('screen-language');
+        cancelHold();
+      }, 2000);
+    }
+
+    function cancelHold() {
+      clearTimeout(holdTimer);
+      const fill = document.getElementById('hold-fill');
+      fill.style.transition = 'width 0.2s ease';
+      fill.style.width = '0%';
+    }
+  </script>
+</body>
+</html>
