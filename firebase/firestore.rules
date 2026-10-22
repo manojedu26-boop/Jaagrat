@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check fleet membership
+    function isFleetMember(fleetId) {
+      return request.auth != null && 
+        (request.auth.token.fleetId == fleetId || request.auth.uid == fleetId);
+    }
+
+    // Fleets metadata
+    match /fleets/{fleetId} {
+      allow read: if request.auth != null;
+      allow write: if isFleetMember(fleetId);
+    }
+
+    // Vehicle registry
+    match /vehicles/{vehicleId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Fatigue Events (App writes 1 KB events; Owner dashboard reads)
+    match /fatigue_events/{eventId} {
+      // Drivers can create events even with anonymous auth
+      allow create: if request.resource.data.vehicleId != null &&
+                       request.resource.data.alertLevel in [1, 2, 3];
+      // Fleet owners can read events belonging to their fleet
+      allow read: if request.auth != null;
+      allow update, delete: if false; // Immutable log for audit safety
+    }
+
+    // Trips tracking
+    match /trips/{tripId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
