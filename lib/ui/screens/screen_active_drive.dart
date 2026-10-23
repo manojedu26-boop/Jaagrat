@@ -107,8 +107,8 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
       statusColor = AppColors.activeGreen;
     }
 
-    return WillPopScope(
-      onWillPop: () async => false, // Prevent accidental back gesture while driving
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
