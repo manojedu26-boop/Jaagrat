@@ -12,6 +12,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
+  <!-- Leaflet CSS & JS for Real Interactive OpenStreetMap / CartoDB Voyager Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
   <style>
     :root {
       --bg-canvas: #F8FAFC;
@@ -114,7 +118,7 @@
       gap: 12px;
     }
 
-    /* PORTAL SWITCHER BUTTONS (Driver Cockpit vs Fleet Owner Portal) */
+    /* PORTAL SWITCHER BUTTONS */
     .portal-nav-toggle {
       display: flex;
       background: var(--surface-muted);
@@ -401,17 +405,19 @@
       color: #FFFFFF;
     }
 
-    /* 2. DEDICATED LANGUAGE SELECTION SCREEN (12 LANGUAGES) */
+    /* 2. DEDICATED LANGUAGE SELECTION SCREEN (12 LANGUAGES) WITH PINNED CONTINUED BAR */
     .lang-screen-view {
       display: none;
       flex-direction: column;
       height: 100%;
+      position: relative;
       padding-top: 4px;
     }
 
     .lang-screen-header {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
     }
 
     .lang-screen-title {
@@ -433,9 +439,9 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       overflow-y: auto;
-      max-height: 520px;
+      flex: 1;
+      padding-bottom: 85px; /* Ensures all cards can be scrolled above sticky button */
       padding-right: 2px;
-      margin-bottom: 12px;
     }
 
     .lang-card-item {
@@ -495,6 +501,44 @@
 
     .lang-card-item.active .lang-check-icon {
       display: flex;
+    }
+
+    /* PINNED STICKY CONTINUE BUTTON (ALWAYS VISIBLE) */
+    .lang-sticky-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, #FFFFFF 85%, rgba(255, 255, 255, 0));
+      padding: 12px 0 2px 0;
+      z-index: 50;
+    }
+
+    .btn-continue-prominent {
+      width: 100%;
+      background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+      color: white;
+      border: none;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(234, 88, 12, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-continue-prominent:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(234, 88, 12, 0.45);
+    }
+
+    .btn-continue-prominent:active {
+      transform: translateY(0);
     }
 
     /* 3. DRIVER ONBOARDING & REAL-WORLD OTP */
@@ -1270,48 +1314,125 @@
       color: var(--alert-red);
     }
 
-    /* Live GPS Map Container */
-    .fleet-map-card {
-      background: var(--bg-white);
+    /* REAL LEAFLET MAP WRAPPER */
+    .real-map-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
       border: 1px solid var(--border-light);
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+      background: #E2E8F0;
     }
 
-    .map-header {
+    .map-controls-overlay {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      right: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      z-index: 500;
+      pointer-events: none;
       flex-wrap: wrap;
       gap: 8px;
     }
 
-    .map-title {
-      font-size: 15px;
+    .map-badge-overlay {
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 11px;
       font-weight: 800;
-      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
 
-    .map-svg-viewport {
-      width: 100%;
-      height: 380px;
-      background: #0B1329;
-      border-radius: 16px;
-      overflow: hidden;
+    .map-btn-group {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .map-ctrl-btn {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-light);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 7px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: all 0.15s ease;
+    }
+
+    .map-ctrl-btn:hover {
+      background: var(--safety-orange);
+      color: white;
+      border-color: var(--safety-orange);
+    }
+
+    /* Custom Leaflet Truck Markers */
+    .truck-marker-custom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .truck-marker-pin {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      border: 2.5px solid white;
       position: relative;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
     }
 
-    .fleet-map-svg {
-      width: 100%;
-      height: 100%;
+    .truck-marker-pin.safe {
+      background: #16A34A;
+    }
+
+    .truck-marker-pin.warning {
+      background: #D97706;
+    }
+
+    .truck-marker-pin.critical {
+      background: #DC2626;
+      animation: markerStrobe 0.7s infinite alternate;
+    }
+
+    @keyframes markerStrobe {
+      from { transform: scale(1); box-shadow: 0 0 10px rgba(220, 38, 38, 0.7); }
+      to { transform: scale(1.22); box-shadow: 0 0 26px rgba(220, 38, 38, 1); }
+    }
+
+    .truck-marker-label {
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(6px);
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 6px;
+      margin-top: 3px;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
 
     /* Table of Fleet Vehicles */
@@ -1432,7 +1553,6 @@
       color: white;
     }
 
-    /* Emergency Dispatch Floating Toast in Fleet Portal */
     .dispatch-alert-banner {
       background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
       color: white;
@@ -1464,7 +1584,7 @@
       <div class="brand-badge">जाग्रत</div>
       <div class="brand-meta">
         <h1>Jaagrat Driver Fatigue Guard</h1>
-        <p>Commercial Fleet Safety System — 12 Native Indian Languages & Fleet Owner Portal</p>
+        <p>Commercial Fleet Safety System — 12 Native Indian Languages & Live Fleet Map</p>
       </div>
     </div>
     
@@ -1530,7 +1650,7 @@
             <button class="btn-splash-skip" onclick="skipSplash()">Tap to Continue &rarr;</button>
           </div>
 
-          <!-- SCREEN 2: DEDICATED LANGUAGE PICKER (12 INDIAN LANGUAGES) -->
+          <!-- SCREEN 2: DEDICATED LANGUAGE PICKER (12 INDIAN LANGUAGES) WITH PINNED CONTINUED BAR -->
           <div class="lang-screen-view" id="viewLanguage">
             <div class="lang-screen-header">
               <div style="font-size:22px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
@@ -1602,9 +1722,12 @@
               </div>
             </div>
 
-            <button class="btn-primary" style="margin-top:auto;" onclick="proceedToDriverDetails()">
-              <span id="t_btnContinueLang">Continue / ಮುಂದುವರಿಸಿ &rarr;</span>
-            </button>
+            <!-- PINNED STICKY CONTINUE BUTTON (ALWAYS VISIBLE & DYNAMICALLY UPDATES IN SELECTED LANGUAGE) -->
+            <div class="lang-sticky-footer">
+              <button class="btn-continue-prominent" onclick="proceedToDriverDetails()">
+                <span id="t_btnContinueLang">Continue &rarr;</span>
+              </button>
+            </div>
           </div>
 
           <!-- SCREEN 3: DRIVER ONBOARDING & REAL-WORLD OTP (STEP 2) -->
@@ -1944,106 +2067,32 @@
       </div>
     </div>
 
-    <!-- Live GPS Highway Tracking Map -->
+    <!-- REAL INTERACTIVE LEAFLET / OPENSTREETMAP FLEET MAP -->
     <div class="fleet-map-card">
       <div class="map-header">
         <div class="map-title">
           <span>🛰️ Live Highway Fleet Tracking Map (Golden Quadrilateral & Freight Corridors)</span>
         </div>
         <div style="display:flex; gap:14px; font-size:11px; font-weight:700; color:var(--text-muted);">
-          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#22C55E;"></span> Normal Attentive</span>
-          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#F59E0B;"></span> Fatigue Advisory</span>
-          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#EF4444;"></span> Level 2 Critical Siren</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#16A34A;"></span> Normal Attentive</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#D97706;"></span> Fatigue Advisory</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#DC2626;"></span> Level 2 Critical Siren</span>
         </div>
       </div>
 
-      <!-- Vector GPS Map Viewport -->
-      <div class="map-svg-viewport" id="mapSvgViewport">
-        <svg class="fleet-map-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
-          <!-- India Freight Highway Grid Lines -->
-          <defs>
-            <linearGradient id="routeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.6"/>
-              <stop offset="100%" stop-color="#818CF8" stop-opacity="0.6"/>
-            </linearGradient>
-            <radialGradient id="redRadar">
-              <stop offset="0%" stop-color="#EF4444" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#EF4444" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-
-          <!-- Highway Network Paths -->
-          <!-- NH-44: North-South Corridor (Delhi -> Hyderabad -> Bengaluru) -->
-          <path d="M 450,40 L 480,140 L 520,240 L 490,320" fill="none" stroke="url(#routeGlow)" stroke-width="3" stroke-dasharray="6,4"/>
-          <!-- NH-48: West Corridor (Delhi -> Jaipur -> Mumbai -> Pune -> Bengaluru) -->
-          <path d="M 450,40 L 370,100 L 290,190 L 320,230 L 490,320" fill="none" stroke="url(#routeGlow)" stroke-width="3" stroke-dasharray="6,4"/>
-          <!-- NH-16: East Coast Corridor (Kolkata -> Vizag -> Chennai) -->
-          <path d="M 750,150 L 680,240 L 560,330" fill="none" stroke="url(#routeGlow)" stroke-width="2.5" stroke-dasharray="6,4"/>
-          <!-- NH-27: East-West Corridor (Porbandar -> Ahmedabad -> Kanpur -> Siliguri) -->
-          <path d="M 200,160 L 320,150 L 520,130 L 780,110" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
-
-          <!-- Corridor Labels -->
-          <text x="510" y="270" fill="#94A3B8" font-size="11" font-weight="700">NH-44 Corridor</text>
-          <text x="310" y="210" fill="#94A3B8" font-size="11" font-weight="700">NH-48 Mumbai-Pune</text>
-          <text x="690" y="220" fill="#94A3B8" font-size="11" font-weight="700">NH-16 East Coast</text>
-          <text x="495" y="340" fill="#F8FAFC" font-size="12" font-weight="800">📍 Bengaluru Hub</text>
-          <text x="455" y="30" fill="#F8FAFC" font-size="12" font-weight="800">📍 Delhi-NCR Hub</text>
-
-          <!-- VEHICLE MARKERS -->
-          <!-- 1. KA-01-AB-1234 (Ramesh Kumar on NH-44 approaching Bengaluru) -->
-          <g id="mapMarker_KA01" transform="translate(500, 290)">
-            <!-- Radar ping circle for critical alert -->
-            <circle cx="0" cy="0" r="22" fill="url(#redRadar)" id="radarPingKA01">
-              <animate attributeName="r" values="8;28;8" dur="1.4s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.8;0.1;0.8" dur="1.4s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="0" cy="0" r="8" fill="#EF4444" stroke="#FFFFFF" stroke-width="2" id="markerDotKA01"/>
-            <rect x="12" y="-14" width="130" height="26" rx="6" fill="rgba(15, 23, 42, 0.85)" stroke="#EF4444" stroke-width="1.5" id="markerBoxKA01"/>
-            <text x="20" y="4" fill="#FFFFFF" font-size="10" font-weight="800" font-family="'JetBrains Mono', monospace" id="markerTextKA01">KA-01-AB-1234 (42 km/h)</text>
-          </g>
-
-          <!-- 2. MH-12-RN-8812 (Suresh Patil on NH-48 Pune) -->
-          <g transform="translate(320, 230)">
-            <circle cx="0" cy="0" r="7" fill="#22C55E" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255,255,255,0.2)"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">MH-12-RN-8812 (64 km/h)</text>
-          </g>
-
-          <!-- 3. DL-01-AX-4433 (Gurpreet Singh on NH-48 Jaipur Corridor) -->
-          <g transform="translate(390, 85)">
-            <circle cx="0" cy="0" r="7" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="#F59E0B"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">DL-01-AX-4433 (58 km/h)</text>
-          </g>
-
-          <!-- 4. TN-09-BK-9102 (M. Selvam on NH-16 Chennai Port) -->
-          <g transform="translate(560, 325)">
-            <circle cx="0" cy="0" r="7" fill="#22C55E" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255,255,255,0.2)"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">TN-09-BK-9102 (48 km/h)</text>
-          </g>
-
-          <!-- 5. TS-07-UA-3011 (Venkat Rao on Hyderabad ORR) -->
-          <g transform="translate(520, 235)">
-            <circle cx="0" cy="0" r="7" fill="#22C55E" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255,255,255,0.2)"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">TS-07-UA-3011 (52 km/h)</text>
-          </g>
-
-          <!-- 6. GJ-06-ZZ-1822 (Jignesh Shah on Vadodara Exp) -->
-          <g transform="translate(270, 160)">
-            <circle cx="0" cy="0" r="7" fill="#22C55E" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255,255,255,0.2)"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">GJ-06-ZZ-1822 (68 km/h)</text>
-          </g>
-
-          <!-- 7. WB-19-JK-5541 (Anirban Das on Kolkata Exp) -->
-          <g transform="translate(740, 150)">
-            <circle cx="0" cy="0" r="7" fill="#22C55E" stroke="#FFFFFF" stroke-width="2"/>
-            <rect x="12" y="-14" width="126" height="24" rx="6" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(255,255,255,0.2)"/>
-            <text x="20" y="3" fill="#FFFFFF" font-size="10" font-weight="700">WB-19-JK-5541 (61 km/h)</text>
-          </g>
-        </svg>
+      <!-- Real Map Viewport Container -->
+      <div class="real-map-wrapper">
+        <div class="map-controls-overlay">
+          <div class="map-badge-overlay">
+            <span class="live-dot"></span>
+            <span>REAL-TIME GPS TELEMETRY (AIS-140)</span>
+          </div>
+          <div class="map-btn-group">
+            <button class="map-ctrl-btn" onclick="focusVehicleOnMap('KA-01-AB-1234')">📍 Focus KA-01 (NH-44)</button>
+            <button class="map-ctrl-btn" onclick="resetFleetMapView()">🌍 View All Fleet (India)</button>
+          </div>
+        </div>
+        <div id="realFleetMap" style="width: 100%; height: 420px; border-radius: 16px; z-index: 1;"></div>
       </div>
     </div>
 
@@ -2054,7 +2103,7 @@
           <span>📋 Real-Time Commercial Fleet Roster & Buzzer Audit</span>
         </div>
         <div style="font-size:11px; font-weight:700; color:var(--text-muted);">
-          <span>Auto-Sync: Live WebSocket (< 100ms)</span>
+          <span>Auto-Sync: Live WebSocket (< 100ms) • Click any row to focus on Map</span>
         </div>
       </div>
 
@@ -2080,7 +2129,7 @@
 
   </main>
 
-  <!-- Sound Audio Synthesizers -->
+  <!-- Sound Audio Synthesizers & Business Logic -->
   <script>
     const i18n = {
       en: {
@@ -2709,14 +2758,16 @@
     let isGpsStationary = false;
     let geoWatchId = null;
 
-    // Commercial Fleet Mock Database (8 Vehicles)
+    // Commercial Fleet Database with Real GPS Coordinates on Indian Freight Corridors
     const fleetVehicles = [
       {
         id: "KA-01-AB-1234",
         driver: "Ramesh Kumar",
         phone: "+91 98765 43210",
         model: "BharatBenz 3723R (Heavy Haul)",
-        corridor: "NH-44 Bengaluru Mile 42",
+        corridor: "NH-44 Bengaluru Airport Corridor",
+        lat: 13.1986,
+        lng: 77.7066,
         speed: 42,
         state: "CRITICAL",
         stateLabel: "Level 2 Siren Active",
@@ -2732,7 +2783,9 @@
         driver: "Suresh Patil",
         phone: "+91 98220 11928",
         model: "Tata Prima 4028.S (Container)",
-        corridor: "NH-48 Pune Bypass",
+        corridor: "NH-48 Mumbai-Pune Expressway",
+        lat: 18.7511,
+        lng: 73.4093,
         speed: 64,
         state: "SAFE",
         stateLabel: "Focused & Attentive",
@@ -2748,7 +2801,9 @@
         driver: "Gurpreet Singh",
         phone: "+91 98110 33411",
         model: "Ashok Leyland 4220 (14-Wheeler)",
-        corridor: "NH-48 Delhi-Jaipur",
+        corridor: "NH-48 Delhi-Jaipur Highway",
+        lat: 28.1925,
+        lng: 76.6214,
         speed: 58,
         state: "WARNING",
         stateLabel: "Fatigue Advisory (3 Yawns)",
@@ -2764,7 +2819,9 @@
         driver: "M. Selvam",
         phone: "+91 94440 88219",
         model: "Eicher Pro 6028 (Reefer Truck)",
-        corridor: "NH-16 Chennai Port",
+        corridor: "NH-16 Chennai Port Expressway",
+        lat: 13.0827,
+        lng: 80.2707,
         speed: 48,
         state: "SAFE",
         stateLabel: "Focused & Attentive",
@@ -2781,6 +2838,8 @@
         phone: "+91 99890 55123",
         model: "Tata Signa 2823.K (Tipper)",
         corridor: "Hyderabad Outer Ring Rd",
+        lat: 17.4065,
+        lng: 78.4772,
         speed: 52,
         state: "SAFE",
         stateLabel: "Focused & Attentive",
@@ -2796,7 +2855,9 @@
         driver: "Jignesh Shah",
         phone: "+91 98250 77112",
         model: "BharatBenz 2823C (Tanker)",
-        corridor: "NE-1 Ahmedabad-Vadodara",
+        corridor: "NE-1 Ahmedabad-Vadodara Exp",
+        lat: 22.3072,
+        lng: 73.1812,
         speed: 68,
         state: "SAFE",
         stateLabel: "Focused & Attentive",
@@ -2813,6 +2874,8 @@
         phone: "+91 98120 44901",
         model: "Mahindra Blazo X 35",
         corridor: "Manesar Freight Terminal",
+        lat: 28.3541,
+        lng: 76.9381,
         speed: 0,
         state: "STANDBY",
         stateLabel: "Depot Standby (Resting)",
@@ -2828,7 +2891,9 @@
         driver: "Anirban Das",
         phone: "+91 98300 66299",
         model: "Tata 1616 Cowl Chassis",
-        corridor: "NH-19 Kolkata-Durgapur",
+        corridor: "NH-19 Kolkata-Durgapur Exp",
+        lat: 22.9868,
+        lng: 87.8550,
         speed: 61,
         state: "SAFE",
         stateLabel: "Focused & Attentive",
@@ -2840,6 +2905,127 @@
         risk: "SAFE"
       }
     ];
+
+    // --- REAL LEAFLET GPS MAP ENGINE ---
+    let leafletMap = null;
+    const mapVehicleMarkers = {};
+
+    function initRealFleetMap() {
+      if (leafletMap) {
+        leafletMap.invalidateSize();
+        return;
+      }
+
+      const mapElem = document.getElementById('realFleetMap');
+      if (!mapElem) return;
+
+      // Center map along Indian Highway Corridors
+      leafletMap = L.map('realFleetMap', {
+        center: [18.5, 78.5],
+        zoom: 5,
+        zoomControl: false,
+        scrollWheelZoom: true
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
+
+      // OpenStreetMap / CartoDB Voyager Map Tiles
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(leafletMap);
+
+      // Draw Indian Freight Corridors (NH-44, NH-48, NH-16)
+      const highwayCorridors = [
+        // NH-44: North-South Golden Highway
+        [[28.6139, 77.2090], [27.1767, 78.0081], [21.1458, 79.0882], [17.3850, 78.4867], [13.1986, 77.7066]],
+        // NH-48: West Freight Corridor
+        [[28.6139, 77.2090], [26.9124, 75.7873], [23.0225, 72.5714], [19.0760, 72.8777], [18.7511, 73.4093], [12.9716, 77.5946]],
+        // NH-16: East Coast Corridor
+        [[22.5726, 88.3639], [20.2961, 85.8245], [17.6868, 83.2185], [13.0827, 80.2707]]
+      ];
+
+      highwayCorridors.forEach(pts => {
+        L.polyline(pts, {
+          color: '#EA580C',
+          weight: 4,
+          opacity: 0.65,
+          dashArray: '8, 8',
+          lineCap: 'round'
+        }).addTo(leafletMap);
+      });
+
+      // Render Real Markers for all Fleet Vehicles
+      renderRealMapMarkers();
+    }
+
+    function renderRealMapMarkers() {
+      if (!leafletMap) return;
+
+      fleetVehicles.forEach(v => {
+        let pinClass = 'safe';
+        if (v.state === 'WARNING') pinClass = 'warning';
+        if (v.state === 'CRITICAL') pinClass = 'critical';
+
+        const customIcon = L.divIcon({
+          className: 'truck-marker-custom',
+          html: `
+            <div class="truck-marker-pin ${pinClass}" id="pin_${v.id}">
+              <span>🚛</span>
+            </div>
+            <div class="truck-marker-label">${v.id}</div>
+          `,
+          iconSize: [60, 50],
+          iconAnchor: [30, 25]
+        });
+
+        if (mapVehicleMarkers[v.id]) {
+          mapVehicleMarkers[v.id].setLatLng([v.lat, v.lng]);
+          mapVehicleMarkers[v.id].setIcon(customIcon);
+        } else {
+          const marker = L.marker([v.lat, v.lng], { icon: customIcon }).addTo(leafletMap);
+          
+          const popupContent = `
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; min-width:210px; padding:2px;">
+              <div style="font-weight:900; font-size:14px; color:#0F172A; display:flex; justify-content:space-between; align-items:center;">
+                <span>${v.id}</span>
+                <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; ${v.state === 'CRITICAL' ? 'background:#FEF2F2; color:#DC2626;' : 'background:#F0FDF4; color:#16A34A;'}">${v.state}</span>
+              </div>
+              <div style="font-size:12px; font-weight:700; color:#475569; margin-top:2px;">${v.driver} • ${v.model}</div>
+              <div style="font-size:11px; color:#64748B; margin-top:4px;">📍 ${v.corridor}</div>
+              <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; background:#F1F5F9; padding:6px 8px; border-radius:8px;">
+                <span>Speed: <strong>${v.speed} km/h</strong></span>
+                <span>Buzzers: <strong style="color:${v.totalBuzzers > 0 ? '#DC2626' : '#16A34A'};">${v.totalBuzzers}</strong></span>
+              </div>
+              <div style="display:flex; gap:6px; margin-top:10px;">
+                <button style="flex:1; background:#DC2626; color:white; border:none; padding:6px 8px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer;" onclick="triggerEmergencyDispatch('${v.id}')">🚨 Dispatch</button>
+                <button style="flex:1; background:#0F172A; color:white; border:none; padding:6px 8px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer;" onclick="callDriver('${v.driver}', '${v.phone}')">📞 Call</button>
+              </div>
+            </div>
+          `;
+
+          marker.bindPopup(popupContent);
+          mapVehicleMarkers[v.id] = marker;
+        }
+      });
+    }
+
+    function focusVehicleOnMap(vehicleId) {
+      const v = fleetVehicles.find(x => x.id === vehicleId);
+      if (!v || !leafletMap) return;
+      leafletMap.flyTo([v.lat, v.lng], 13, { duration: 1.4 });
+      if (mapVehicleMarkers[v.id]) {
+        setTimeout(() => {
+          mapVehicleMarkers[v.id].openPopup();
+        }, 1500);
+      }
+    }
+
+    function resetFleetMapView() {
+      if (!leafletMap) return;
+      leafletMap.flyTo([18.5, 78.5], 5, { duration: 1.2 });
+    }
 
     // --- AUDIO SYNTHESIZERS (WEB AUDIO API) ---
     let audioCtx = null;
@@ -2857,7 +3043,6 @@
       return audioCtx;
     }
 
-    // Level 1 Warning Chime: Dual pleasant chime (1000Hz -> 1300Hz)
     function playWarningChime() {
       try {
         const ctx = getAudioContext();
@@ -2877,7 +3062,6 @@
       }
     }
 
-    // Level 2 Cockpit Emergency Siren: Piercing Alternating Square Waves (800Hz / 1200Hz)
     function startLevel2CockpitSiren() {
       stopLevel2CockpitSiren();
       try {
@@ -2926,15 +3110,14 @@
       } catch(e) {}
     }
 
-    // Dispatch Notification Chime (for Fleet Owner Portal)
     function playDispatchChime() {
       try {
         const ctx = getAudioContext();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.5, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
         osc.connect(gain);
@@ -2957,6 +3140,9 @@
         driverSection.style.display = 'none';
         fleetSection.style.display = 'flex';
         renderFleetTable();
+        setTimeout(() => {
+          initRealFleetMap();
+        }, 120);
         logEvent('PORTAL: Switched to Enterprise Fleet Owner Command Center.');
       } else {
         fleetTab.classList.remove('active');
@@ -2973,7 +3159,7 @@
       if (!tbody) return;
 
       tbody.innerHTML = '';
-      fleetVehicles.forEach((v, idx) => {
+      fleetVehicles.forEach((v) => {
         const tr = document.createElement('tr');
         if (v.state === 'CRITICAL') {
           tr.className = 'critical-row';
@@ -2984,7 +3170,9 @@
         if (v.state === 'CRITICAL') chipClass = 'chip-danger';
 
         tr.innerHTML = `
-          <td><span class="vehicle-badge-pill">${v.id}</span></td>
+          <td>
+            <span class="vehicle-badge-pill" style="cursor:pointer;" onclick="focusVehicleOnMap('${v.id}')" title="Click to view on Map">${v.id}</span>
+          </td>
           <td>
             <strong>${v.driver}</strong>
             <div style="font-size:10px; color:var(--text-muted);">${v.phone}</div>
@@ -3011,6 +3199,9 @@
               <button class="btn-action-sm" onclick="callDriver('${v.driver}', '${v.phone}')">
                 <span>📞 Call</span>
               </button>
+              <button class="btn-action-sm" onclick="focusVehicleOnMap('${v.id}')">
+                <span>🗺️ Map</span>
+              </button>
             </div>
           </td>
         `;
@@ -3034,9 +3225,9 @@
       document.getElementById('dispatchBannerTitle').textContent = 'EMERGENCY DISPATCH TRIGGERED: ' + vehicleId;
       document.getElementById('dispatchBannerDesc').textContent = 'Remote alarm ping dispatched to cockpit. Nearest highway patrol notified.';
       
-      // If triggered for KA-01-AB-1234, trigger cockpit siren directly!
+      focusVehicleOnMap(vehicleId);
+
       if (vehicleId === 'KA-01-AB-1234') {
-        const dict = i18n[currentLang] || i18n.en;
         triggerEmergencyModal('DISPATCH OVERRIDE: WAKE UP!');
       }
     }
@@ -3047,9 +3238,7 @@
       alert('✓ Emergency Acknowledged. Rest Patrol dispatched to Mile Marker 42.');
     }
 
-    // SYNC FLEET TELEMETRY WHEN DRIVER COCKPIT TRIGGERS ALARM
     function syncFleetEmergency(reason) {
-      // Update vehicle 0 (KA-01-AB-1234)
       fleetVehicles[0].state = 'CRITICAL';
       fleetVehicles[0].stateLabel = 'Level 2 Siren: ' + reason;
       fleetVehicles[0].totalBuzzers++;
@@ -3057,15 +3246,11 @@
       if (reason.includes('Head Drop')) fleetVehicles[0].headDrops++;
       fleetVehicles[0].fatigueRate = (1.45 + (fleetVehicles[0].totalBuzzers * 0.35)).toFixed(2) + ' / 100km';
 
-      // Update KPI
       const critElem = document.getElementById('kpiCriticalCount');
       if (critElem) critElem.textContent = '1 ACTIVE';
 
-      // Update Map pin to red
-      const box = document.getElementById('markerBoxKA01');
-      if (box) box.setAttribute('stroke', '#EF4444');
+      renderRealMapMarkers();
 
-      // Show banner on fleet portal
       const banner = document.getElementById('dispatchAlertBanner');
       if (banner) {
         banner.style.display = 'flex';
@@ -3088,7 +3273,6 @@
       }, 400);
     }
 
-    // Auto-advance splash after 2.2 seconds if not tapped
     setTimeout(() => {
       const splash = document.getElementById('viewSplash');
       if (splash && splash.style.display !== 'none') {
@@ -3104,6 +3288,7 @@
       
       const langView = document.getElementById('viewLanguage');
       langView.style.display = 'flex';
+      applyLanguage(currentLang);
       logEvent('ONBOARDING: Step 1 Language Selection View loaded (12 Languages).');
     }
 
@@ -3137,7 +3322,12 @@
       const tBtnContinueLang = document.getElementById('t_btnContinueLang');
       if (tChooseTitle) tChooseTitle.textContent = dict.chooseLangTitle;
       if (tChooseSub) tChooseSub.textContent = dict.chooseLangSub;
-      if (tBtnContinueLang) tBtnContinueLang.textContent = dict.btnContinue;
+      
+      // CRITICAL FIX: Ensure Continue Button ALWAYS updates cleanly in chosen native script with visible arrow!
+      if (tBtnContinueLang) {
+        const label = (dict.btnContinueLang || dict.btnContinue || 'Continue &rarr;').replace('&rarr;', '→');
+        tBtnContinueLang.textContent = label;
+      }
 
       // Update Onboarding Screen
       const tDriverOnboarding = document.getElementById('t_driverOnboarding');
@@ -3426,7 +3616,7 @@
       }
     }
 
-    // --- PROCESS FACIAL LANDMARKS WITH HEAD-SHAKE & FACE-LOSS RESILIENCE ---
+    // --- PROCESS FACIAL LANDMARKS (HEAD-SHAKE & FACE-LOSS RESILIENT) ---
     function onFaceMeshResults(results) {
       const canvas = document.getElementById('meshCanvas');
       const ctx = canvas.getContext('2d');
@@ -3442,10 +3632,9 @@
       const bracketBox = document.getElementById('faceBracketBox');
       const dict = i18n[currentLang] || i18n.en;
 
-      // 1. SAFE FACE ABSENCE HANDLING (NO BUZZING, ZERO SPAM)
+      // 1. SAFE FACE ABSENCE (RESET TIMERS, ZERO SPAM)
       if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
         bracketBox.className = 'face-bracket-box';
-        // Reset ongoing timers when face is not visible
         headDropStartTime = null;
         headDropLatched = false;
         eyeClosedStartTime = null;
@@ -3466,15 +3655,14 @@
       // 2. MAR (Mouth Aspect Ratio) - 0.48 threshold
       const currentMar = calculateMAR(lm);
 
-      // 3. HEAD SHAKE & YAW FILTER (Check mirror / horizontal head rotation)
-      // Landmarks: 1 = Nose tip, 234 = Left cheek, 454 = Right cheek
+      // 3. HEAD SHAKE & YAW FILTER (Check mirror / horizontal rotation)
       const cheekSpan = Math.abs(lm[454].x - lm[234].x);
       const leftDist = Math.abs(lm[1].x - lm[234].x);
       const rightDist = Math.abs(lm[454].x - lm[1].x);
       const yawAsymmetry = Math.abs(leftDist - rightDist) / Math.max(0.001, cheekSpan);
-      const isShakingHead = yawAsymmetry > 0.35; // Head turned or shaking
+      const isShakingHead = yawAsymmetry > 0.35;
 
-      // 4. ROLL TILT FILTER (Angle between outer eye corners 33 and 263)
+      // 4. ROLL TILT FILTER
       const eyeDx = lm[263].x - lm[33].x;
       const eyeDy = lm[263].y - lm[33].y;
       const rollAngle = Math.abs(Math.atan2(eyeDy, eyeDx) * 180 / Math.PI);
@@ -3487,17 +3675,12 @@
       const upperFaceH = Math.max(0.01, noseY - foreheadY);
       const lowerFaceH = Math.max(0.01, chinY - noseY);
       const rawPitchRatio = lowerFaceH / upperFaceH;
-      const zTilt = (lm[152].z - lm[10].z); // Chin depth minus forehead depth
+      const zTilt = (lm[152].z - lm[10].z);
 
-      // Exponential Moving Average (EMA) to smooth out single-frame jumps
+      // Exponential Moving Average (EMA)
       smoothedPitchRatio = (smoothedPitchRatio * 0.72) + (rawPitchRatio * 0.28);
       smoothedZTilt = (smoothedZTilt * 0.72) + (zTilt * 0.28);
 
-      // Genuine downward nod requires:
-      // - Nose drops close to chin (smoothedPitchRatio < 0.60)
-      // - Chin is tilted back / forehead forward (smoothedZTilt > 0.035)
-      // - Head is NOT shaking or turning sideways (!isShakingHead)
-      // - Head is NOT rolling sideways (!isTiltingRoll)
       const isGenuineHeadDrop = (smoothedPitchRatio < 0.60) && !isShakingHead && !isTiltingRoll && (smoothedZTilt > 0.035);
 
       // Subtle futuristic eye tracking dots
@@ -3521,14 +3704,13 @@
         if (!headDropStartTime) headDropStartTime = now;
         const dropDur = now - headDropStartTime;
 
-        // Visual feedback on HUD: progress bar fills smoothly in 1.5s
         const pct = Math.min(100, (dropDur / 1500) * 100);
         document.getElementById('closureLineFill').style.width = pct + '%';
-        document.getElementById('closureLineFill').style.backgroundColor = '#F59E0B'; // amber while tilting
+        document.getElementById('closureLineFill').style.backgroundColor = '#F59E0B';
 
         if (dropDur >= 1500 && !isLevel2AlarmActive && !headDropLatched) {
           isLevel2AlarmActive = true;
-          headDropLatched = true; // prevent repeated spamming!
+          headDropLatched = true;
           headDropCount++;
           document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
           triggerEmergencyModal(dict.criticalHeadDropTitle);
@@ -3538,7 +3720,7 @@
       } else {
         headDropStartTime = null;
         if (smoothedPitchRatio > 0.75) {
-          headDropLatched = false; // release latch once driver returns to upright posture
+          headDropLatched = false;
         }
       }
 
