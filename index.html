@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jaagrat (जाग्रत) — Commercial Driver Fatigue Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-canvas: #F1F5F9;
+      --bg-white: #FFFFFF;
+      --surface-card: #FFFFFF;
+      --surface-muted: #F8FAFC;
+      --border-light: #E2E8F0;
+      --border-focus: #CBD5E1;
+      
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-subtle: #94A3B8;
+      
+      --safety-orange: #EA580C;
+      --safety-orange-hover: #C2410C;
+      --safety-orange-light: #FFF7ED;
+      
+      --alert-red: #DC2626;
+      --alert-red-light: #FEF2F2;
+      --alert-red-border: #FCA5A5;
+      
+      --status-green: #16A34A;
+      --status-green-light: #F0FDF4;
+      --status-amber: #D97706;
+      
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 14px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-badge {
+      background: var(--safety-orange);
+      color: white;
+      font-weight: 800;
+      font-size: 18px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-meta h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-meta p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-pill {
+      background: var(--status-green-light);
+      color: var(--status-green);
+      border: 1px solid #BBF7D0;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-pill::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--status-green);
+      border-radius: 50%;
+    }
+
+    /* Main Showcase Layout */
+    .showcase-container {
+      width: 100%;
+      max-width: 1120px;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .showcase-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mobile Phone Shell (380x760 clean driver display) */
+    .phone-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-frame {
+      width: 380px;
+      height: 740px;
+      background: #FFFFFF;
+      border: 10px solid #1E293B;
+      border-radius: 44px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Notch & Speaker */
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 24px;
+      background: #1E293B;
+      border-bottom-left-radius: 16px;
+      border-bottom-right-radius: 16px;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone-speaker {
+      width: 44px;
+      height: 4px;
+      background: #475569;
+      border-radius: 2px;
+    }
+
+    /* Mobile App Internal Screen */
+    .app-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 20px 20px 20px;
+      background: #FFFFFF;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* Driver Screen Header */
+    .driver-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 16px;
+    }
+
+    .vehicle-tag {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      padding: 4px 10px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .speed-status-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .speed-status-pill.armed {
+      background: var(--status-green-light);
+      color: var(--status-green);
+      border: 1px solid #BBF7D0;
+    }
+
+    .speed-status-pill.standby {
+      background: #FEF3C7;
+      color: var(--status-amber);
+      border: 1px solid #FDE68A;
+    }
+
+    /* Camera Feed / Face Guide Box */
+    .camera-card {
+      position: relative;
+      width: 100%;
+      height: 270px;
+      background: #0F172A;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .camera-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirror front camera */
+    }
+
+    .camera-fallback-graphic {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94A3B8;
+      gap: 8px;
+    }
+
+    /* Oval Face Mesh Guide */
+    .oval-guide {
+      position: absolute;
+      width: 160px;
+      height: 210px;
+      border: 2px dashed rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .oval-guide.detected {
+      border: 2.5px solid #22C55E;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
+
+    .oval-guide.alarm {
+      border: 3px solid #EF4444;
+      animation: pulse-border 0.6s infinite alternate;
+    }
+
+    @keyframes pulse-border {
+      from { box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
+      to { box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); }
+    }
+
+    .live-feed-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: #EF4444;
+      border-radius: 50%;
+      animation: blink-dot 1s infinite;
+    }
+
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .resolution-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #94A3B8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    /* Live Telemetry Metric Bars */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .metric-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Microsleep Countdown Meter */
+    .microsleep-box {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .microsleep-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .microsleep-track {
+      width: 100%;
+      height: 10px;
+      background: #E2E8F0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .microsleep-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--safety-orange);
+      border-radius: 6px;
+      transition: width 0.1s linear, background-color 0.2s ease;
+    }
+
+    /* Bottom Action Buttons */
+    .driver-actions {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--safety-orange);
+      color: white;
+      border: none;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--safety-orange-hover);
+    }
+
+    .btn-outline {
+      width: 100%;
+      background: var(--bg-white);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-muted);
+    }
+
+    /* Emergency Alert Modal (Level 2) */
+    .alert-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(220, 38, 38, 0.96);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 24px 32px 24px;
+      text-align: center;
+      color: white;
+      animation: alert-flash 0.5s infinite alternate;
+    }
+
+    @keyframes alert-flash {
+      from { background: rgba(220, 38, 38, 0.96); }
+      to { background: rgba(185, 28, 28, 0.99); }
+    }
+
+    .alert-modal-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .alert-bell-icon {
+      width: 74px;
+      height: 74px;
+      background: white;
+      color: #DC2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .alert-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .alert-subtitle {
+      font-size: 15px;
+      font-weight: 600;
+      opacity: 0.92;
+      max-width: 280px;
+    }
+
+    .btn-i-am-awake {
+      width: 100%;
+      background: #FFFFFF;
+      color: #DC2626;
+      border: 3px solid #FFFFFF;
+      padding: 18px 24px;
+      font-size: 20px;
+      font-weight: 900;
+      border-radius: 18px;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+      letter-spacing: 0.5px;
+      transition: transform 0.1s ease;
+    }
+
+    .btn-i-am-awake:active {
+      transform: scale(0.97);
+    }
+
+    /* Right Control & Telemetry Panel */
+    .control-panel {
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel-section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label-group {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .slider-input {
+      width: 100%;
+      height: 6px;
+      accent-color: var(--safety-orange);
+      cursor: pointer;
+    }
+
+    .trigger-buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-test {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--border-light);
+      background: var(--surface-muted);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-test:hover {
+      background: #FFFFFF;
+      border-color: var(--safety-orange);
+      color: var(--safety-orange);
+    }
+
+    .spec-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .spec-item:last-child {
+      border-bottom: none;
+    }
+
+    .spec-key {
+      font-weight: 600;
+    }
+
+    .spec-val {
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Screen Tab Bar (Switching views) */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: var(--surface-muted);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1 1 calc(33% - 6px);
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-white);
+      color: var(--text-main);
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Global Header -->
+  <header class="top-nav">
+    <div class="brand-group">
+      <div class="brand-badge">जाग्रत</div>
+      <div class="brand-meta">
+        <h1>Jaagrat Driver Fatigue Guard</h1>
+        <p>Commercial Fleet Safety System — Clean White UI Preview</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="badge-pill" id="globalStatusPill">100% On-Device Active</div>
+    </div>
+  </header>
+
+  <!-- Showcase Layout -->
+  <main class="showcase-container">
+
+    <!-- Phone Hardware Frame -->
+    <div class="phone-wrapper">
+      <div class="phone-frame">
+        <div class="phone-notch">
+          <div class="phone-speaker"></div>
+        </div>
+
+        <!-- Phone Internal Screen -->
+        <div class="app-screen" id="appScreen">
+          
+          <!-- Screen Tabs for Inspector -->
+          <div class="tab-bar">
+            <button class="tab-btn active" id="tabActive" onclick="setScreenView('active')">Active Drive</button>
+            <button class="tab-btn" id="tabWarning" onclick="setScreenView('warning')">Level 1 Warn</button>
+            <button class="tab-btn" id="tabEmergency" onclick="setScreenView('emergency')">Level 2 Alarm</button>
+            <button class="tab-btn" id="tabSummary" onclick="setScreenView('summary')">Step 3 Summary</button>
+            <button class="tab-btn" id="tabOnboard" onclick="setScreenView('onboard')">Onboarding</button>
+          </div>
+
+          <!-- 1. ACTIVE DRIVE VIEW -->
+          <div id="viewActiveDrive">
+            <div class="driver-header">
+              <span class="vehicle-tag">KA-01-AB-1234</span>
+              <span class="speed-status-pill armed" id="screenSpeedPill">42 km/h • ARMED</span>
+            </div>
+
+            <!-- Camera Viewport Card -->
+            <div class="camera-card" id="cameraViewport">
+              <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
+              
+              <div class="camera-fallback-graphic" id="cameraFallback">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span style="font-size:12px; font-weight:700;">Camera Feed Ready</span>
+              </div>
+
+              <!-- Face Guide Oval -->
+              <div class="oval-guide detected" id="ovalGuide"></div>
+
+              <div class="live-feed-badge">
+                <span class="live-dot"></span>
+                <span>FRONT CAM</span>
+              </div>
+
+              <div class="resolution-badge">480p • 15 FPS</div>
+            </div>
+
+            <!-- Real-time Metrics Grid -->
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">
+                  <span>EYE RATIO (EAR)</span>
+                  <span id="earStatusText" style="color:var(--status-green);">OPEN</span>
+                </div>
+                <div class="metric-value" id="earValue">0.31</div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-label">
+                  <span>YAWN (MAR)</span>
+                  <span id="marStatusText" style="color:var(--text-muted);">NORMAL</span>
+                </div>
+                <div class="metric-value" id="marValue">0.14</div>
+              </div>
+            </div>
+
+            <!-- Microsleep Buffer Bar -->
+            <div class="microsleep-box">
+              <div class="microsleep-header">
+                <span>MICROSLEEP EYE CLOSURE</span>
+                <span id="frameCounter">0 / 18 frames</span>
+              </div>
+              <div class="microsleep-track">
+                <div class="microsleep-fill" id="microsleepFill"></div>
+              </div>
+            </div>
+
+            <!-- Bottom Driver Action Buttons -->
+            <div class="driver-actions">
+              <button class="btn-primary" id="btnToggleCamera" onclick="toggleWebcam()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span id="cameraBtnText">Enable Front Camera</span>
+              </button>
+              <button class="btn-outline" onclick="triggerPotholeShock()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Simulate Road Bump (650ms Cooldown)</span>
+              </button>
+              <button class="btn-outline" style="border-color:#CBD5E1; color:var(--text-muted);" onclick="setScreenView('summary')">
+                <span>🏁 End Shift & View Safety Summary</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. ONBOARDING VIEW (Mock) -->
+          <div id="viewOnboarding" style="display:none; flex-direction:column; gap:16px;">
+            <div style="text-align:center; margin-bottom:12px;">
+              <div style="font-size:28px; font-weight:900; color:var(--text-main);">जाग्रत</div>
+              <p style="font-size:13px; color:var(--text-muted); font-weight:600;">One-Time Driver Registration</p>
+            </div>
+
+            <div class="control-row">
+              <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Mobile Number</label>
+              <input type="text" value="+91 98765 43210" style="padding:12px; border:1px solid var(--border-light); border-radius:10px; font-size:14px; font-weight:700;">
+            </div>
+
+            <div class="control-row">
+              <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Vehicle Registration Plate</label>
+              <input type="text" value="KA-01-AB-1234" style="padding:12px; border:1px solid var(--border-light); border-radius:10px; font-size:14px; font-weight:700; text-transform:uppercase;">
+            </div>
+
+            <div class="control-row">
+              <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Alert Audio Language</label>
+              <select style="padding:12px; border:1px solid var(--border-light); border-radius:10px; font-size:14px; font-weight:700; background:white;">
+                <option selected>हिंदी (Hindi)</option>
+                <option>ಕನ್ನಡ (Kannada)</option>
+                <option>தமிழ் (Tamil)</option>
+                <option>తెలుగు (Telugu)</option>
+                <option>मराठी (Marathi)</option>
+                <option>English</option>
+              </select>
+            </div>
+
+            <button class="btn-primary" style="margin-top:20px;" onclick="setScreenView('active')">
+              Save & Start Monitoring
+            </button>
+            <p style="font-size:11px; text-align:center; color:var(--text-subtle);">Driver logs in once. App opens directly here afterwards.</p>
+          </div>
+
+          <!-- 3. STEP 3 SHIFT SUMMARY VIEW (Post-Trip Breakdown) -->
+          <div id="viewSummary" style="display:none; flex-direction:column; gap:14px;">
+            <div style="width:40px; height:4px; background:#CBD5E1; border-radius:2px; margin:0 auto 4px auto;"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:11px; font-weight:800; color:var(--text-subtle); letter-spacing:1px;">SHIFT SUMMARY</div>
+                <div style="font-size:19px; font-weight:800; color:var(--text-main);">Trip Completed Safe</div>
+              </div>
+              <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:14px; padding:6px 12px; text-align:center;">
+                <div style="font-size:22px; font-weight:900; color:#16A34A; line-height:1;">96</div>
+                <div style="font-size:9px; font-weight:800; color:#16A34A; margin-top:2px;">SAFETY SCORE</div>
+              </div>
+            </div>
+
+            <!-- Shift Metrics Grid -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">DURATION</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">4h 12m</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">AVERAGE SPEED</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">54.2 km/h</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">MICROSLEEPS</div>
+                <div style="font-size:16px; font-weight:800; color:#16A34A; margin-top:2px;">0 Detected</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">BUMPS FILTERED</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">14 Filtered</div>
+              </div>
+            </div>
+
+            <!-- Offline Queue & Dead Zone Status -->
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px; display:flex; align-items:center; gap:10px;">
+              <div style="font-size:18px;">📡</div>
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:700; color:var(--text-main);">Telemetry Queue: 0 Pending</div>
+                <div style="font-size:10px; color:var(--text-muted);">All packets synced to fleet server. Zero dead-zone loss.</div>
+              </div>
+            </div>
+
+            <!-- Privacy Guarantee Badge -->
+            <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:12px; padding:10px; font-size:10px; line-height:1.4; color:#9A3412;">
+              <b>🔒 Privacy Guarantee:</b> 100% on-device AI. Zero video or audio data was recorded or transmitted. Only incident JSON logs (&lt; 1 KB) are preserved.
+            </div>
+
+            <button class="btn-primary" style="margin-top:6px;" onclick="setScreenView('active')">
+              Finish Shift & Log Off
+            </button>
+          </div>
+
+          <!-- EMERGENCY ALERT MODAL OVERLAY (Level 2) -->
+          <div class="alert-modal-overlay" id="emergencyModal">
+            <div class="alert-modal-content">
+              <div class="alert-bell-icon">⚠️</div>
+              <div class="alert-title">WAKE UP!</div>
+              <div class="alert-subtitle">Eyes closed for &gt; 1.2s while vehicle is in motion!</div>
+              <div style="background:rgba(0,0,0,0.25); padding:8px 16px; border-radius:8px; font-size:12px; font-weight:700;">
+                🔊 Max Volume Industrial Siren Looping
+              </div>
+            </div>
+
+            <button class="btn-i-am-awake" onclick="dismissEmergencyAlert()">
+              I AM AWAKE
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Control & Simulation Workbench -->
+    <div class="control-panel">
+      <div class="panel-section-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+        </svg>
+        <span>Sensor Guard & CV Engine Controls</span>
+      </div>
+
+      <!-- GPS Speed Guard Slider -->
+      <div class="control-row">
+        <div class="control-label-group">
+          <span>GPS Speed Guard</span>
+          <span id="gpsSpeedDisplay" style="color:var(--status-green);">42 km/h (ARMED)</span>
+        </div>
+        <input type="range" class="slider-input" id="speedSlider" min="0" max="100" value="42" oninput="updateGpsSpeed(this.value)">
+        <p style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+          Rule: If speed &lt; 10 km/h (signal stopped or parked), detection shifts to <b>STANDBY_PAUSED</b> to prevent false alerts.
+        </p>
+      </div>
+
+      <!-- Interactive Trigger Tests -->
+      <div class="control-row">
+        <div class="control-label-group">
+          <span>Test Multi-Tier Fatigue Escalation</span>
+        </div>
+        <div class="trigger-buttons-grid">
+          <button class="btn-test" onclick="simulateEyeClosure(18)">
+            <span style="font-size:18px;">😴</span>
+            <span>Trigger Level 2 (1.2s Eye Closure)</span>
+          </button>
+          <button class="btn-test" onclick="simulateHeadDrop()">
+            <span style="font-size:18px;">🙇‍♂️</span>
+            <span>Trigger Head Drop (&gt; 20° Pitch)</span>
+          </button>
+          <button class="btn-test" onclick="simulateLevel1Warning()">
+            <span style="font-size:18px;">🥱</span>
+            <span>Trigger Level 1 (2 Deep Yawns)</span>
+          </button>
+          <button class="btn-test" onclick="triggerPotholeShock()">
+            <span style="font-size:18px;">🚧</span>
+            <span>Trigger &gt;1.8G Pothole Shock</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Technical Architecture Specs -->
+      <div class="panel-section-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <span>Hardware & Constraints Verification</span>
+      </div>
+
+      <div class="spec-card">
+        <div class="spec-item">
+          <span class="spec-key">Camera Resolution</span>
+          <span class="spec-val">480p VGA (Low Res)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Inference Frame Rate</span>
+          <span class="spec-val">15 FPS (&Delta; 66ms throttled)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Pothole Suppression Vector</span>
+          <span class="spec-val">&gt; 18.0 m/s&sup2; (650ms cooldown)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Microsleep Trigger</span>
+          <span class="spec-val">&ge; 1.2s closed (18 frames)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Emergency Alarm Reset</span>
+          <span class="spec-val">"I AM AWAKE" or 2.0s eyes open</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Cloud Telemetry Payload</span>
+          <span class="spec-val">&lt; 1 KB (Zero video streaming)</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentSpeed = 42;
+    let isArmed = true;
+    let cameraActive = false;
+    let earValue = 0.31;
+    let marValue = 0.14;
+    let closedFrameCount = 0;
+    let alarmInterval = null;
+
+    // Web Audio Synthesizer for high-pitch buzzer simulation
+    let audioCtx = null;
+    let buzzerOsc = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playBuzzer() {
+      initAudio();
+      if (buzzerOsc) return;
+      buzzerOsc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      buzzerOsc.type = 'sawtooth';
+      buzzerOsc.frequency.setValueAtTime(2400, audioCtx.currentTime); // Piercing 2400Hz
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      buzzerOsc.connect(gain);
+      gain.connect(audioCtx.destination);
+      buzzerOsc.start();
+    }
+
+    function stopBuzzer() {
+      if (buzzerOsc) {
+        try { buzzerOsc.stop(); } catch(e) {}
+        buzzerOsc.disconnect();
+        buzzerOsc = null;
+      }
+    }
+
+    function updateGpsSpeed(val) {
+      currentSpeed = parseInt(val);
+      const display = document.getElementById('gpsSpeedDisplay');
+      const pill = document.getElementById('screenSpeedPill');
+      
+      if (currentSpeed < 10) {
+        isArmed = false;
+        display.textContent = `${currentSpeed} km/h (STANDBY PAUSED)`;
+        display.style.color = 'var(--status-amber)';
+        pill.className = 'speed-status-pill standby';
+        pill.textContent = `${currentSpeed} km/h • STANDBY`;
+      } else {
+        isArmed = true;
+        display.textContent = `${currentSpeed} km/h (ARMED)`;
+        display.style.color = 'var(--status-green)';
+        pill.className = 'speed-status-pill armed';
+        pill.textContent = `${currentSpeed} km/h • ARMED`;
+      }
+    }
+
+    function toggleWebcam() {
+      const video = document.getElementById('webcamElement');
+      const fallback = document.getElementById('cameraFallback');
+      const btnText = document.getElementById('cameraBtnText');
+
+      if (!cameraActive) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
+          .then(stream => {
+            video.srcObject = stream;
+            video.style.display = 'block';
+            fallback.style.display = 'none';
+            cameraActive = true;
+            btnText.textContent = 'Stop Front Camera';
+          })
+          .catch(err => {
+            alert('Webcam preview note: ' + err.message);
+          });
+      } else {
+        if (video.srcObject) {
+          video.srcObject.getTracks().forEach(t => t.stop());
+        }
+        video.style.display = 'none';
+        fallback.style.display = 'flex';
+        cameraActive = false;
+        btnText.textContent = 'Enable Front Camera';
+      }
+    }
+
+    function simulateEyeClosure(frames) {
+      if (!isArmed) {
+        alert('Speed is < 10 km/h (Standby mode). Alarms are suppressed while vehicle is stopped!');
+        return;
+      }
+      setScreenView('active');
+      let count = 0;
+      clearInterval(alarmInterval);
+
+      document.getElementById('earStatusText').textContent = 'CLOSED';
+      document.getElementById('earStatusText').style.color = 'var(--alert-red)';
+      document.getElementById('earValue').textContent = '0.12';
+
+      alarmInterval = setInterval(() => {
+        count++;
+        const pct = Math.min(100, (count / 18) * 100);
+        document.getElementById('microsleepFill').style.width = pct + '%';
+        document.getElementById('frameCounter').textContent = `${count} / 18 frames`;
+
+        if (count >= 18) {
+          clearInterval(alarmInterval);
+          triggerEmergencyModal();
+        }
+      }, 66); // 15 FPS = 66ms
+    }
+
+    function simulateHeadDrop() {
+      if (!isArmed) {
+        alert('Speed is < 10 km/h (Standby mode). Alarms are suppressed while stopped.');
+        return;
+      }
+      setScreenView('active');
+      triggerEmergencyModal('HEAD DROP: Pitch > 20° sustained');
+    }
+
+    function simulateLevel1Warning() {
+      if (!isArmed) {
+        alert('Speed is < 10 km/h. Alarms suppressed.');
+        return;
+      }
+      setScreenView('warning');
+      initAudio();
+      // Soft chime sound
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.8);
+    }
+
+    function triggerEmergencyModal(reason) {
+      const modal = document.getElementById('emergencyModal');
+      const oval = document.getElementById('ovalGuide');
+      modal.style.display = 'flex';
+      oval.className = 'oval-guide alarm';
+      playBuzzer();
+    }
+
+    function dismissEmergencyAlert() {
+      const modal = document.getElementById('emergencyModal');
+      const oval = document.getElementById('ovalGuide');
+      modal.style.display = 'none';
+      oval.className = 'oval-guide detected';
+      stopBuzzer();
+
+      document.getElementById('microsleepFill').style.width = '0%';
+      document.getElementById('frameCounter').textContent = '0 / 18 frames';
+      document.getElementById('earStatusText').textContent = 'OPEN';
+      document.getElementById('earStatusText').style.color = 'var(--status-green)';
+      document.getElementById('earValue').textContent = '0.31';
+    }
+
+    function triggerPotholeShock() {
+      const card = document.getElementById('cameraViewport');
+      card.style.transform = 'translateY(-6px)';
+      setTimeout(() => card.style.transform = 'translateY(6px)', 80);
+      setTimeout(() => card.style.transform = 'translateY(0)', 160);
+
+      const pill = document.getElementById('screenSpeedPill');
+      const origText = pill.textContent;
+      pill.textContent = 'BUMP (>1.8G) SUPPRESSED';
+      pill.style.background = '#FEE2E2';
+      pill.style.color = '#DC2626';
+
+      setTimeout(() => {
+        pill.textContent = origText;
+        updateGpsSpeed(currentSpeed);
+      }, 650);
+    }
+
+    function setScreenView(view) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('emergencyModal').style.display = 'none';
+      stopBuzzer();
+
+      const viewActive = document.getElementById('viewActiveDrive');
+      const viewOnboarding = document.getElementById('viewOnboarding');
+      const viewSummary = document.getElementById('viewSummary');
+
+      if (view === 'active') {
+        document.getElementById('tabActive').classList.add('active');
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
+      } else if (view === 'warning') {
+        document.getElementById('tabWarning').classList.add('active');
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
+        const pill = document.getElementById('screenSpeedPill');
+        pill.textContent = 'LEVEL 1: YAWN DETECTED';
+        pill.className = 'speed-status-pill standby';
+      } else if (view === 'emergency') {
+        document.getElementById('tabEmergency').classList.add('active');
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
+        triggerEmergencyModal();
+      } else if (view === 'summary') {
+        document.getElementById('tabSummary').classList.add('active');
+        viewActive.style.display = 'none';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'flex';
+      } else if (view === 'onboard') {
+        document.getElementById('tabOnboard').classList.add('active');
+        viewActive.style.display = 'none';
+        viewOnboarding.style.display = 'flex';
+        viewSummary.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

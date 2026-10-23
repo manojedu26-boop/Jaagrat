@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
 import '../constants/app_constants.dart';
@@ -297,25 +298,19 @@ class DriverMonitorService extends ChangeNotifier {
 
   InputImage? _convertCameraImageToInputImage(CameraImage image, CameraDescription camera) {
     try {
-      final WriteBuffer allBytes = WriteBuffer();
-      for (final Plane plane in image.planes) {
-        allBytes.putUint8List(plane.bytes);
-      }
-      final bytes = allBytes.done().buffer.asUint8List();
-
-      final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+      final plane = image.planes.first;
+      final format = InputImageFormatValue.fromRawValue(image.format.raw as int) ??
+          InputImageFormat.nv21;
       final cameraRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
           InputImageRotation.rotation0deg;
-      final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw as int) ??
-          InputImageFormat.nv21;
 
       return InputImage.fromBytes(
-        bytes: bytes,
+        bytes: plane.bytes,
         metadata: InputImageMetadata(
-          size: imageSize,
+          size: Size(image.width.toDouble(), image.height.toDouble()),
           rotation: cameraRotation,
-          format: inputImageFormat,
-          bytesPerRow: image.planes.first.bytesPerRow,
+          format: format,
+          bytesPerRow: plane.bytesPerRow,
         ),
       );
     } catch (e) {
