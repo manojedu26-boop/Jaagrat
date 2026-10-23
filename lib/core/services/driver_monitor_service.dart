@@ -309,26 +309,14 @@ class DriverMonitorService extends ChangeNotifier {
       final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw as int) ??
           InputImageFormat.nv21;
 
-      final planeData = image.planes.map(
-        (Plane plane) {
-          return InputImagePlaneMetadata(
-            bytesPerRow: plane.bytesPerRow,
-            height: plane.height,
-            width: plane.width,
-          );
-        },
-      ).toList();
-
-      final inputImageData = InputImageData(
-        size: imageSize,
-        imageRotation: cameraRotation,
-        inputImageFormat: inputImageFormat,
-        planeData: planeData,
-      );
-
       return InputImage.fromBytes(
         bytes: bytes,
-        inputImageData: inputImageData,
+        metadata: InputImageMetadata(
+          size: imageSize,
+          rotation: cameraRotation,
+          format: inputImageFormat,
+          bytesPerRow: image.planes.first.bytesPerRow,
+        ),
       );
     } catch (e) {
       return null;

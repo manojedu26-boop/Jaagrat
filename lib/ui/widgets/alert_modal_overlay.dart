@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/services/driver_monitor_service.dart';
+import '../../core/controllers/driver_monitor_controller.dart';
 
 class AlertModalOverlay extends StatefulWidget {
   final AlertLevel alertLevel;
@@ -43,7 +43,7 @@ class _AlertModalOverlayState extends State<AlertModalOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final bool isMicrosleep = widget.alertLevel == AlertLevel.level2Microsleep;
+    final bool isMicrosleep = widget.alertLevel == AlertLevel.emergency;
 
     return Container(
       width: double.infinity,

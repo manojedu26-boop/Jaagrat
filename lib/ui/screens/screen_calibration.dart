@@ -122,10 +122,7 @@ class _ScreenCalibrationState extends State<ScreenCalibration> {
     // Camera stream will be transferred to background driver monitor during active drive
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => ScreenActiveDrive(
-          cameraController: _cameraController,
-          cameraDescription: _frontCamera,
-        ),
+        builder: (_) => const ScreenActiveDrive(),
       ),
     );
   }

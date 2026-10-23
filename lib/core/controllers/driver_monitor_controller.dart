@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -253,6 +253,12 @@ class DriverMonitorController extends ChangeNotifier {
   // 4. METRIC COMPUTATIONS (EAR, MAR, PITCH)
   // ---------------------------------------------------------------------------
 
+  double _dist(FaceMeshPoint p1, FaceMeshPoint p2) {
+    final dx = (p1.x - p2.x).toDouble();
+    final dy = (p1.y - p2.y).toDouble();
+    return math.sqrt(dx * dx + dy * dy);
+  }
+
   /// EAR = (||p_top - p_bottom||) / (||p_left - p_right||)
   double _computeEar(List<FaceMeshPoint> pts, int leftIdx, int topIdx, int bottomIdx, int rightIdx) {
     final pLeft = pts[leftIdx];
@@ -260,8 +266,8 @@ class DriverMonitorController extends ChangeNotifier {
     final pTop = pts[topIdx];
     final pBottom = pts[bottomIdx];
 
-    final vertical = math.hypot(pTop.x - pBottom.x, pTop.y - pBottom.y);
-    final horizontal = math.hypot(pLeft.x - pRight.x, pLeft.y - pRight.y);
+    final vertical = _dist(pTop, pBottom);
+    final horizontal = _dist(pLeft, pRight);
 
     if (horizontal == 0) return 0.30;
     return vertical / horizontal;
@@ -274,8 +280,8 @@ class DriverMonitorController extends ChangeNotifier {
     final pLeft = pts[leftIdx];
     final pRight = pts[rightIdx];
 
-    final vertical = math.hypot(pTop.x - pBottom.x, pTop.y - pBottom.y);
-    final horizontal = math.hypot(pLeft.x - pRight.x, pLeft.y - pRight.y);
+    final vertical = _dist(pTop, pBottom);
+    final horizontal = _dist(pLeft, pRight);
 
     if (horizontal == 0) return 0.15;
     return vertical / horizontal;
@@ -287,11 +293,11 @@ class DriverMonitorController extends ChangeNotifier {
     final forehead = pts[foreheadIdx];
     final chin = pts[chinIdx];
 
-    final double faceHeight = math.hypot(forehead.x - chin.x, forehead.y - chin.y);
+    final double faceHeight = _dist(forehead, chin);
     if (faceHeight == 0) return 0.0;
 
     // Normal baseline nose ratio is ~0.50. Forward tilt pulls nose down towards chin
-    final double noseToForehead = math.hypot(forehead.x - nose.x, forehead.y - nose.y);
+    final double noseToForehead = _dist(forehead, nose);
     final double ratio = noseToForehead / faceHeight;
 
     // Deviation in degrees (pitch downwards past 20 degrees is positive tilt)

@@ -387,7 +387,7 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
               // 5. Emergency Full-Screen Siren Overlay (Visible only when microsleep or severe alert triggers)
               if (isEmergency)
                 AlertModalOverlay(
-                  alertLevel: AlertLevel.level2Microsleep,
+                  alertLevel: AlertLevel.emergency,
                   onDismiss: _onDismissAlert,
                 ),
             ],
