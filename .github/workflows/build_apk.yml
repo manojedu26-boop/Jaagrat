@@ -34,6 +34,13 @@ jobs:
           flutter create --overwrite --project-name jaagrat --platforms=android --org com.jaagrat .
           cp /tmp/pubspec_custom.yaml pubspec.yaml
           cp /tmp/backup_android/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          # Ensure minSdk is explicitly 21 for ML Kit Face Mesh and Firebase compatibility
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle.kts
+          fi
+          if [ -f android/app/build.gradle ]; then
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
+          fi
 
       - name: Install Dependencies
         run: flutter pub get
@@ -43,11 +50,17 @@ jobs:
 
       - name: Build Android Release APK
         run: |
-          flutter build apk --release --no-tree-shake-icons || {
-            echo "::error::Flutter build failed. Running Gradle directly for detailed stacktrace..."
-            cd android && ./gradlew assembleRelease --stacktrace
-            exit 1
-          }
+          set +e
+          flutter build apk --release --no-tree-shake-icons -v > build.log 2>&1
+          BUILD_EXIT=$?
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "::error::Flutter build failed with exit code $BUILD_EXIT"
+            echo "=== LAST 300 LINES OF BUILD LOG ==="
+            tail -n 300 build.log
+            echo "=== DETECTED COMPILATION ERRORS ==="
+            grep -E "FAILURE:|error:|exception|Caused by:|compile.*Error" -C 3 build.log || true
+            exit $BUILD_EXIT
+          fi
 
       - name: Verify APK Generation
         run: ls -la build/app/outputs/flutter-apk/
@@ -58,3 +71,10 @@ jobs:
           name: jaagrat-driver-app-release
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-build-log
+          path: build.log

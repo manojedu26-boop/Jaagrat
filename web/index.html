@@ -700,6 +700,7 @@
             <button class="tab-btn active" id="tabActive" onclick="setScreenView('active')">Active Drive</button>
             <button class="tab-btn" id="tabWarning" onclick="setScreenView('warning')">Level 1 Warn</button>
             <button class="tab-btn" id="tabEmergency" onclick="setScreenView('emergency')">Level 2 Alarm</button>
+            <button class="tab-btn" id="tabSummary" onclick="setScreenView('summary')">Step 3 Summary</button>
             <button class="tab-btn" id="tabOnboard" onclick="setScreenView('onboard')">Onboarding</button>
           </div>
 
@@ -777,6 +778,9 @@
                 </svg>
                 <span>Simulate Road Bump (650ms Cooldown)</span>
               </button>
+              <button class="btn-outline" style="border-color:#CBD5E1; color:var(--text-muted);" onclick="setScreenView('summary')">
+                <span>🏁 End Shift & View Safety Summary</span>
+              </button>
             </div>
           </div>
 
@@ -813,6 +817,60 @@
               Save & Start Monitoring
             </button>
             <p style="font-size:11px; text-align:center; color:var(--text-subtle);">Driver logs in once. App opens directly here afterwards.</p>
+          </div>
+
+          <!-- 3. STEP 3 SHIFT SUMMARY VIEW (Post-Trip Breakdown) -->
+          <div id="viewSummary" style="display:none; flex-direction:column; gap:14px;">
+            <div style="width:40px; height:4px; background:#CBD5E1; border-radius:2px; margin:0 auto 4px auto;"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:11px; font-weight:800; color:var(--text-subtle); letter-spacing:1px;">SHIFT SUMMARY</div>
+                <div style="font-size:19px; font-weight:800; color:var(--text-main);">Trip Completed Safe</div>
+              </div>
+              <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:14px; padding:6px 12px; text-align:center;">
+                <div style="font-size:22px; font-weight:900; color:#16A34A; line-height:1;">96</div>
+                <div style="font-size:9px; font-weight:800; color:#16A34A; margin-top:2px;">SAFETY SCORE</div>
+              </div>
+            </div>
+
+            <!-- Shift Metrics Grid -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">DURATION</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">4h 12m</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">AVERAGE SPEED</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">54.2 km/h</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">MICROSLEEPS</div>
+                <div style="font-size:16px; font-weight:800; color:#16A34A; margin-top:2px;">0 Detected</div>
+              </div>
+              <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:var(--text-muted);">BUMPS FILTERED</div>
+                <div style="font-size:16px; font-weight:800; color:var(--text-main); margin-top:2px;">14 Filtered</div>
+              </div>
+            </div>
+
+            <!-- Offline Queue & Dead Zone Status -->
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px; display:flex; align-items:center; gap:10px;">
+              <div style="font-size:18px;">📡</div>
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:700; color:var(--text-main);">Telemetry Queue: 0 Pending</div>
+                <div style="font-size:10px; color:var(--text-muted);">All packets synced to fleet server. Zero dead-zone loss.</div>
+              </div>
+            </div>
+
+            <!-- Privacy Guarantee Badge -->
+            <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:12px; padding:10px; font-size:10px; line-height:1.4; color:#9A3412;">
+              <b>🔒 Privacy Guarantee:</b> 100% on-device AI. Zero video or audio data was recorded or transmitted. Only incident JSON logs (&lt; 1 KB) are preserved.
+            </div>
+
+            <button class="btn-primary" style="margin-top:6px;" onclick="setScreenView('active')">
+              Finish Shift & Log Off
+            </button>
           </div>
 
           <!-- EMERGENCY ALERT MODAL OVERLAY (Level 2) -->
@@ -1106,26 +1164,39 @@
       document.getElementById('emergencyModal').style.display = 'none';
       stopBuzzer();
 
+      const viewActive = document.getElementById('viewActiveDrive');
+      const viewOnboarding = document.getElementById('viewOnboarding');
+      const viewSummary = document.getElementById('viewSummary');
+
       if (view === 'active') {
         document.getElementById('tabActive').classList.add('active');
-        document.getElementById('viewActiveDrive').style.display = 'block';
-        document.getElementById('viewOnboarding').style.display = 'none';
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
       } else if (view === 'warning') {
         document.getElementById('tabWarning').classList.add('active');
-        document.getElementById('viewActiveDrive').style.display = 'block';
-        document.getElementById('viewOnboarding').style.display = 'none';
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
         const pill = document.getElementById('screenSpeedPill');
         pill.textContent = 'LEVEL 1: YAWN DETECTED';
         pill.className = 'speed-status-pill standby';
       } else if (view === 'emergency') {
         document.getElementById('tabEmergency').classList.add('active');
-        document.getElementById('viewActiveDrive').style.display = 'block';
-        document.getElementById('viewOnboarding').style.display = 'none';
+        viewActive.style.display = 'block';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'none';
         triggerEmergencyModal();
+      } else if (view === 'summary') {
+        document.getElementById('tabSummary').classList.add('active');
+        viewActive.style.display = 'none';
+        viewOnboarding.style.display = 'none';
+        viewSummary.style.display = 'flex';
       } else if (view === 'onboard') {
         document.getElementById('tabOnboard').classList.add('active');
-        document.getElementById('viewActiveDrive').style.display = 'none';
-        document.getElementById('viewOnboarding').style.display = 'flex';
+        viewActive.style.display = 'none';
+        viewOnboarding.style.display = 'flex';
+        viewSummary.style.display = 'none';
       }
     }
   </script>
