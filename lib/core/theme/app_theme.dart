@@ -3,29 +3,29 @@ import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 
 class AppTheme {
-  static ThemeData get darkTheme {
+  static ThemeData get lightTheme {
     return ThemeData(
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
-      primaryColor: AppColors.activeGreen,
+      primaryColor: AppColors.primaryButton,
       cardColor: AppColors.cardSurface,
       fontFamily: 'Inter',
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.activeGreen,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primaryButton,
         secondary: AppColors.textPrimary,
         surface: AppColors.cardSurface,
         background: AppColors.background,
         error: AppColors.criticalRed,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 22,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          letterSpacing: -0.3,
         ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
@@ -56,7 +56,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.cardSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConstants.cardCornerRadius),
           borderSide: const BorderSide(color: AppColors.cardBorder, width: 1.2),
@@ -67,7 +67,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConstants.cardCornerRadius),
-          borderSide: const BorderSide(color: AppColors.activeGreen, width: 2.0),
+          borderSide: const BorderSide(color: AppColors.primaryButton, width: 2.0),
         ),
         hintStyle: const TextStyle(
           color: AppColors.textTertiary,

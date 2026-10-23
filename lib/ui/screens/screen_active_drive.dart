@@ -27,6 +27,11 @@ class ScreenActiveDrive extends StatefulWidget {
 }
 
 class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
+  CameraController? _cameraController;
+  CameraDescription? _frontCamera;
+  bool _isCameraActive = false;
+  bool _isInitializingCamera = false;
+
   late Stopwatch _tripStopwatch;
   Timer? _tickerTimer;
   String _formattedDuration = '00:00:00';
@@ -34,13 +39,13 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
   @override
   void initState() {
     super.initState();
-    // 1. Prevent phone screen from sleeping while driving
+    // 1. Keep phone screen on while driving
     WakelockPlus.enable();
 
-    // 2. Start GPS & Accelerometer sensors
+    // 2. Start GPS Speed & Pothole Shock sensors
     context.read<SensorGuardService>().startMonitoring();
 
-    // 3. Start trip timer
+    // 3. Start trip elapsed timer
     _tripStopwatch = Stopwatch()..start();
     _tickerTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
@@ -54,20 +59,73 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
       });
     });
 
-    // 4. Ensure camera stream is actively driving inference
-    _ensureCameraStreaming();
+    // 4. Auto-initialize front camera if provided or initialize fresh
+    if (widget.cameraController != null && widget.cameraController!.value.isInitialized) {
+      _cameraController = widget.cameraController;
+      _frontCamera = widget.cameraDescription;
+      _isCameraActive = true;
+      _startImageStream();
+    } else {
+      _initFrontCamera();
+    }
   }
 
-  void _ensureCameraStreaming() {
-    final camera = widget.cameraController;
-    final description = widget.cameraDescription;
+  Future<void> _initFrontCamera() async {
+    setState(() => _isInitializingCamera = true);
+    try {
+      final cameras = await availableCameras();
+      _frontCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        _frontCamera!,
+        ResolutionPreset.medium, // 480p is optimal for cool thermals and 15 FPS inference
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.nv21,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+
+      setState(() {
+        _isCameraActive = true;
+        _isInitializingCamera = false;
+      });
+
+      _startImageStream();
+    } catch (e) {
+      print('[ScreenActiveDrive] Front camera init notice: $e');
+      if (mounted) {
+        setState(() => _isInitializingCamera = false);
+      }
+    }
+  }
+
+  void _startImageStream() {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
     final monitorService = context.read<DriverMonitorService>();
 
-    if (camera != null && camera.value.isInitialized && description != null) {
-      if (!camera.value.isStreamingImages) {
-        camera.startImageStream((CameraImage image) {
-          monitorService.processCameraImage(image, description);
-        });
+    if (!_cameraController!.value.isStreamingImages && _frontCamera != null) {
+      _cameraController!.startImageStream((CameraImage image) {
+        monitorService.processCameraImage(image, _frontCamera!);
+      });
+    }
+  }
+
+  Future<void> _toggleCamera() async {
+    if (_isCameraActive) {
+      if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+        await _cameraController!.stopImageStream();
+      }
+      setState(() => _isCameraActive = false);
+    } else {
+      if (_cameraController != null && _cameraController!.value.isInitialized) {
+        _startImageStream();
+        setState(() => _isCameraActive = true);
+      } else {
+        await _initFrontCamera();
       }
     }
   }
@@ -79,22 +137,17 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
   void _onEndTrip() async {
     _tripStopwatch.stop();
     _tickerTimer?.cancel();
-
-    // Turn off wakelock
     WakelockPlus.disable();
 
-    // Stop sensors & alerts
     final monitorService = context.read<DriverMonitorService>();
     monitorService.dismissAlert();
     context.read<SensorGuardService>().stopMonitoring();
 
-    // Safely stop camera stream
     try {
-      if (widget.cameraController != null &&
-          widget.cameraController!.value.isStreamingImages) {
-        await widget.cameraController!.stopImageStream();
+      if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+        await _cameraController!.stopImageStream();
       }
-      await widget.cameraController?.dispose();
+      await _cameraController?.dispose();
     } catch (e) {
       print('[ScreenActiveDrive] Camera dispose notice: $e');
     }
@@ -111,6 +164,7 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
     _tripStopwatch.stop();
     _tickerTimer?.cancel();
     WakelockPlus.disable();
+    _cameraController?.dispose();
     super.dispose();
   }
 
@@ -124,125 +178,254 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
     final Color statusColor;
 
     if (sensorGuard.isShockActive) {
-      statusText = AppStrings.statusShock;
+      statusText = 'ROAD BUMP (SUPPRESSED)';
       statusColor = AppColors.standbyAmber;
     } else if (!sensorGuard.isArmedForAlerts) {
-      statusText = AppStrings.statusStandby;
+      statusText = 'STANDBY (<10 KM/H)';
       statusColor = AppColors.standbyAmber;
     } else {
-      statusText = AppStrings.statusActive;
+      statusText = 'ARMED & MONITORING';
       statusColor = AppColors.activeGreen;
     }
 
     final double speedKmh = sensorGuard.currentSpeedKmh;
 
     return WillPopScope(
-      onWillPop: () async => false, // Prevent accidental Android back gestures while driving
+      onWillPop: () async => false, // Prevent accidental back gestures while driving
       child: Scaffold(
-        // Pitch black OLED background (#000000) for zero glare and maximum power efficiency
-        backgroundColor: AppColors.oledBlack,
+        // Clean white driver-friendly background
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          title: const Text(
+            'JAAGRAT • जाग्रत',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          actions: [
+            // GPS Speed Readout Pill
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.cardBorder, width: 1.2),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.speed_rounded, size: 16, color: AppColors.primaryButton),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${speedKmh.toStringAsFixed(0)} km/h',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: Stack(
             children: [
-              // 1. Clean, Zero-Distraction OLED Driving HUD
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Telemetry Header
+                    // 1. Status Bar
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Left: Active Status Pill
                         StatusPill(
                           statusText: statusText,
                           dotColor: statusColor,
                         ),
-
-                        // Right: GPS Speed Readout Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: AppColors.cardBorder, width: 1.2),
+                        Text(
+                          'Trip: $_formattedDuration',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.speed_rounded,
-                                size: 16,
-                                color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 2. Camera Card (Clean White Frame + Face Guide)
+                    Expanded(
+                      flex: 5,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.cardSurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.cardBorder, width: 1.5),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_isCameraActive && _cameraController != null && _cameraController!.value.isInitialized)
+                              SizedBox.expand(
+                                child: CameraPreview(_cameraController!),
+                              )
+                            else
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.videocam_off_outlined,
+                                      size: 54,
+                                      color: AppColors.textTertiary,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Camera is Stopped',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Tap "Start Camera" below to begin face tracking',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(width: 8),
+
+                            // Oval Face Guide Overlay
+                            if (_isCameraActive)
+                              Container(
+                                width: 200,
+                                height: 260,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(
+                                    color: monitor.isFaceDetected
+                                        ? AppColors.activeGreen.withOpacity(0.8)
+                                        : Colors.white.withOpacity(0.6),
+                                    width: 2.5,
+                                  ),
+                                ),
+                              ),
+
+                            // Camera Toggle Button Top Right
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: ElevatedButton.icon(
+                                onPressed: _toggleCamera,
+                                icon: Icon(
+                                  _isCameraActive ? Icons.videocam_off : Icons.videocam,
+                                  size: 16,
+                                ),
+                                label: Text(_isCameraActive ? 'Stop' : 'Start Camera'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _isCameraActive ? Colors.white : AppColors.primaryButton,
+                                  foregroundColor: _isCameraActive ? Colors.black : Colors.white,
+                                  elevation: 2,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 3. Driver Telemetry Readings Card (No nonsense words)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.cardBorder, width: 1.2),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Eye Status:',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                               Text(
-                                '${speedKmh.toStringAsFixed(0)} km/h',
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
+                                monitor.currentEar < monitor.calibratedThreshold
+                                    ? '⚠️ CLOSED (${monitor.currentEar.toStringAsFixed(2)})'
+                                    : 'OPEN (${monitor.currentEar.toStringAsFixed(2)})',
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
+                                  color: monitor.currentEar < monitor.calibratedThreshold
+                                      ? AppColors.criticalRed
+                                      : AppColors.activeGreen,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Microsleep Counter (1.2s Trigger):',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                '${monitor.consecutiveClosedFrames} / 18 frames',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: monitor.consecutiveClosedFrames > 8
+                                      ? AppColors.criticalRed
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 16),
 
-                    const Spacer(),
-
-                    // Minimalist Center Time & Trip Counter (Zero Video Feed)
-                    Column(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.cardSurface,
-                            border: Border.all(color: AppColors.cardBorder),
-                          ),
-                          child: const Icon(
-                            Icons.shield_outlined,
-                            size: 40,
-                            color: AppColors.activeGreen,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          _formattedDuration,
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2.0,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'TRIP IN PROGRESS • VISION ENGINE ACTIVE',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.0,
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const Spacer(),
-
-                    // Bottom 2-second Long-Press End Trip Button
+                    // 4. End Trip Button
                     LongPressEndTripButton(
                       onEndTripConfirmed: _onEndTrip,
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
 
-              // 2. High-Contrast Alert Overlay (Appears ONLY during alert)
+              // 5. Emergency Full-Screen Siren Overlay (Visible only when microsleep or severe alert triggers)
               if (monitor.isAlertActive)
                 AlertModalOverlay(
                   alertLevel: monitor.currentAlertLevel,

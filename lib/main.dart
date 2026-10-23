@@ -21,22 +21,22 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Set immersive dark system UI overlays
+  // Set clean, readable light system UI overlays
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF121212),
-    systemNavigationBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
-  // Initialize Storage
+  // Initialize Storage (Shared Preferences)
   final storageService = await StorageService.init();
 
   // Initialize Firebase (safeguarded against missing google-services.json in local tests)
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    print('[Main] Firebase initialization note (using local mocks for standalone runs): $e');
+    print('[Main] Firebase initialization note: $e');
   }
 
   // Core Hardware & Alert Services
@@ -52,6 +52,13 @@ void main() async {
     telemetry: telemetryService,
   );
 
+  // If driver has already logged in previously, restore profile directly
+  final bool hasCompletedOnboarding = storageService.isSetupComplete();
+  if (hasCompletedOnboarding) {
+    final savedProfile = storageService.getDriverProfile();
+    driverMonitorService.updateProfile(savedProfile);
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -62,21 +69,25 @@ void main() async {
         Provider<TelemetryService>.value(value: telemetryService),
         ChangeNotifierProvider<DriverMonitorService>.value(value: driverMonitorService),
       ],
-      child: const JaagratApp(),
+      child: JaagratApp(isLoggedIn: hasCompletedOnboarding),
     ),
   );
 }
 
 class JaagratApp extends StatelessWidget {
-  const JaagratApp({super.key});
+  final bool isLoggedIn;
+
+  const JaagratApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Jaagrat',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: const ScreenLanguage(),
+      theme: AppTheme.lightTheme,
+      // If already logged in: bypass login and open Driver Monitor directly!
+      // If first-time user: start one-time setup
+      home: isLoggedIn ? const ScreenActiveDrive() : const ScreenLanguage(),
     );
   }
 }

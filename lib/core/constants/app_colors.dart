@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens inspired by modern high-contrast tactile interfaces.
-/// High contrast, dark mode focused (#121212 / #000000) for OLED power saving
-/// and anti-glare safety during night highway shifts in India.
+/// Clean, driver-friendly design tokens.
+/// High contrast, pure white background (#FFFFFF) with crisp slate borders
+/// and deep charcoal typography for maximum daylight & nighttime legibility.
 class AppColors {
-  // Pure OLED Pitch Black (ScreenActiveDrive)
-  static const Color oledBlack = Color(0xFF000000);
+  // Pure White Clean Surfaces
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color cardSurface = Color(0xFFF8FAFC);
+  static const Color cardElevated = Color(0xFFF1F5F9);
+  static const Color cardBorder = Color(0xFFCBD5E1);
 
-  // Deep High-Contrast Surfaces
-  static const Color background = Color(0xFF121212);
-  static const Color cardSurface = Color(0xFF1C1C1E);
-  static const Color cardElevated = Color(0xFF242426);
-  static const Color cardBorder = Color(0xFF2E2E32);
+  // Status & Telemetry (High Contrast)
+  static const Color activeGreen = Color(0xFF16A34A);
+  static const Color activeGreenGlow = Color(0x3316A34A);
+  static const Color standbyAmber = Color(0xFFD97706);
+  static const Color criticalRed = Color(0xFFDC2626);
+  static const Color criticalRedGlow = Color(0x4DDC2626);
 
-  // Status & Telemetry
-  static const Color activeGreen = Color(0xFF10B981);
-  static const Color activeGreenGlow = Color(0x3310B981);
-  static const Color standbyAmber = Color(0xFFF59E0B);
-  static const Color criticalRed = Color(0xFFEF4444);
-  static const Color criticalRedGlow = Color(0x4DEF4444);
+  // High-Contrast Typography
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF334155);
+  static const Color textTertiary = Color(0xFF64748B);
 
-  // Typography & Accents
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFF9CA3AF);
-  static const Color textTertiary = Color(0xFF6B7280);
-
-  // Button & Touch Targets
-  static const Color primaryButton = Color(0xFFFFFFFF);
-  static const Color primaryButtonText = Color(0xFF000000);
-  static const Color emergencyButton = Color(0xFFEF4444);
+  // Buttons & Touch Targets
+  static const Color primaryButton = Color(0xFFEA580C); // Safety Orange
+  static const Color primaryButtonText = Color(0xFFFFFFFF);
+  static const Color secondaryButton = Color(0xFF1E293B); // Deep Navy Slate
+  static const Color secondaryButtonText = Color(0xFFFFFFFF);
+  static const Color emergencyButton = Color(0xFFDC2626);
   static const Color emergencyButtonText = Color(0xFFFFFFFF);
 }
+
