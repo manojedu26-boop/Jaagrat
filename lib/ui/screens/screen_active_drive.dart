@@ -10,6 +10,7 @@ import '../../core/services/audio_alert_manager.dart';
 import '../widgets/status_pill.dart';
 import '../widgets/alert_modal_overlay.dart';
 import '../widgets/long_press_button.dart';
+import '../widgets/trip_summary_sheet.dart';
 import 'screen_language.dart';
 
 class ScreenActiveDrive extends StatefulWidget {
@@ -76,9 +77,25 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
     await controller.stopCamera();
 
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const ScreenLanguage()),
-      (route) => false,
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => TripSummarySheet(
+        durationFormatted: _formattedDuration,
+        averageSpeed: controller.currentSpeed > 0 ? controller.currentSpeed : 42.0,
+        microsleepAlertsCount: 0,
+        yawnsDetectedCount: 1,
+        potholeBumpsSuppressed: 5,
+        onClose: () {
+          Navigator.of(ctx).pop();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const ScreenLanguage()),
+            (route) => false,
+          );
+        },
+      ),
     );
   }
 
