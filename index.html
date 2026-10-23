@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Jaagrat (जाग्रत) — Commercial Driver Fatigue Detection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,57 +58,51 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px;
+      padding: 16px;
     }
 
     /* Top Navigation Bar */
     .top-nav {
       width: 100%;
-      max-width: 1180px;
+      max-width: 1140px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--bg-white);
       border: 1px solid var(--border-light);
       border-radius: 16px;
-      padding: 12px 24px;
-      margin-bottom: 20px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
       box-shadow: var(--shadow-sm);
     }
 
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .brand-badge {
       background: var(--safety-orange);
       color: white;
       font-weight: 900;
-      font-size: 19px;
-      padding: 8px 14px;
+      font-size: 18px;
+      padding: 6px 12px;
       border-radius: 10px;
       letter-spacing: -0.5px;
     }
 
     .brand-meta h1 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       color: var(--text-main);
       letter-spacing: -0.3px;
     }
 
     .brand-meta p {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
       font-weight: 600;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     .badge-pill {
@@ -136,7 +130,7 @@
     /* Main Showcase Layout */
     .showcase-container {
       width: 100%;
-      max-width: 1180px;
+      max-width: 1140px;
       display: grid;
       grid-template-columns: 410px 1fr;
       gap: 24px;
@@ -146,6 +140,7 @@
     @media (max-width: 960px) {
       .showcase-container {
         grid-template-columns: 1fr;
+        justify-items: center;
       }
     }
 
@@ -154,10 +149,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      max-width: 390px;
     }
 
     .phone-frame {
-      width: 390px;
+      width: 100%;
+      max-width: 390px;
       height: 820px;
       background: #FFFFFF;
       border: 10px solid #0F172A;
@@ -204,58 +202,237 @@
       position: relative;
     }
 
-    /* Screen Tab Bar (Switching views) */
-    .tab-bar {
+    /* 1. SPLASH SCREEN (LETTER-BY-LETTER ANIMATION) */
+    .splash-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0F172A;
+      z-index: 90;
       display: flex;
-      gap: 4px;
-      background: var(--surface-muted);
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid var(--border-light);
-      margin-bottom: 12px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+      color: white;
     }
 
-    .tab-btn {
-      flex: 1;
-      padding: 6px 4px;
+    .splash-badge-hindi {
+      background: var(--safety-orange);
+      color: white;
+      font-size: 20px;
+      font-weight: 900;
+      padding: 8px 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.4);
+      animation: splashScale 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes splashScale {
+      from { transform: scale(0.6); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .animated-letters {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .animated-letters .char {
+      font-size: 34px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: translateY(24px) scale(0.8);
+      animation: letterPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes letterPop {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .splash-tagline {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      max-width: 260px;
+      line-height: 1.4;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeIn 0.5s 1.2s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .splash-loader-track {
+      width: 140px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .splash-loader-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--safety-orange);
+      border-radius: 2px;
+      animation: loadFill 1.8s ease-in-out forwards;
+    }
+
+    @keyframes loadFill {
+      to { width: 100%; }
+    }
+
+    .btn-skip-splash {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #CBD5E1;
+      padding: 6px 14px;
+      border-radius: 20px;
       font-size: 11px;
       font-weight: 700;
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text-muted);
-      border-radius: 7px;
       cursor: pointer;
+    }
+
+    /* 2. DRIVER ONBOARDING / LOGIN VIEW */
+    .login-view {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 12px;
+    }
+
+    .login-header {
       text-align: center;
-      white-space: nowrap;
-      transition: all 0.15s ease;
+      margin-bottom: 8px;
     }
 
-    .tab-btn.active {
-      background: var(--bg-white);
+    .login-title {
+      font-size: 22px;
+      font-weight: 900;
       color: var(--text-main);
-      border-color: var(--border-light);
-      box-shadow: var(--shadow-sm);
+      letter-spacing: -0.5px;
     }
 
-    /* Driver Screen Header */
+    .login-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface-muted);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--safety-orange);
+      background: #FFFFFF;
+    }
+
+    .otp-row {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .otp-box {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 10px 0;
+      border: 1.5px solid var(--border-light);
+      border-radius: 10px;
+      background: var(--surface-muted);
+      color: var(--text-main);
+    }
+
+    .otp-verified-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--status-green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    /* 3. ACTIVE DRIVE VIEW */
+    .drive-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .driver-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
       border-bottom: 1px solid var(--border-light);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+    }
+
+    .driver-id-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .vehicle-tag {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: var(--text-main);
       background: var(--surface-muted);
       border: 1px solid var(--border-light);
       padding: 3px 8px;
       border-radius: 6px;
-      letter-spacing: 0.5px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .driver-name-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
     }
 
     .speed-status-pill {
@@ -278,15 +455,36 @@
       border: 1px solid #FDE68A;
     }
 
-    /* Camera Viewport Card (OCCUPIES 3/4TH OF SCREEN HEIGHT) */
+    /* Persistent Warning Banner (Appears after 2+ yawns) */
+    .fatigue-warning-banner {
+      display: none;
+      background: #FEF3C7;
+      border: 1.5px solid #F59E0B;
+      color: #92400E;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      align-items: center;
+      gap: 8px;
+      animation: bannerSlide 0.3s ease;
+    }
+
+    @keyframes bannerSlide {
+      from { transform: translateY(-8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Camera Viewport Card (OCCUPIES >75% OF SCREEN HEIGHT) */
     .camera-card {
       position: relative;
       width: 100%;
-      height: 560px; /* At least 73-77% of front screen height */
+      height: 560px; /* >75% of app screen */
       background: #0B0F19;
       border-radius: 20px;
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -324,7 +522,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scaleX(-1); /* Align mirror with video */
+      transform: scaleX(-1); /* Mirror canvas to align */
       z-index: 2;
       pointer-events: none;
     }
@@ -354,7 +552,7 @@
     }
 
     .cv-badge {
-      background: rgba(15, 23, 42, 0.82);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(8px);
       color: #FFFFFF;
       font-size: 11px;
@@ -381,7 +579,7 @@
     }
 
     .cam-btn-expand {
-      background: rgba(15, 23, 42, 0.82);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(8px);
       color: white;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -402,7 +600,7 @@
     /* Reticle & Guidance Center */
     .reticle-container {
       position: absolute;
-      top: 42%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 170px;
@@ -456,26 +654,26 @@
       z-index: 10;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
     }
 
     .hud-metrics-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
     }
 
     .hud-chip {
       background: rgba(255, 255, 255, 0.08);
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 5px 6px;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
 
     .hud-chip-label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       color: #94A3B8;
       display: flex;
@@ -483,43 +681,48 @@
     }
 
     .hud-chip-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
       color: #FFFFFF;
       display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 4px;
     }
 
     .hud-chip-status {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
-      padding: 2px 5px;
-      border-radius: 4px;
+      padding: 1px 4px;
+      border-radius: 3px;
       text-transform: uppercase;
     }
 
     .hud-chip-status.status-open {
-      background: rgba(34, 197, 94, 0.2);
+      background: rgba(34, 197, 94, 0.25);
       color: #4ADE80;
     }
 
     .hud-chip-status.status-closed {
-      background: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.35);
       color: #F87171;
     }
 
     .hud-chip-status.status-yawn {
-      background: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.35);
       color: #FBBF24;
+    }
+
+    .hud-chip-status.status-pitch {
+      background: rgba(239, 68, 68, 0.35);
+      color: #F87171;
     }
 
     /* Countdown Progress Bar (1.2s Eye Closure) */
     .hud-progress-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .hud-progress-header {
@@ -532,9 +735,9 @@
 
     .hud-progress-track {
       width: 100%;
-      height: 7px;
+      height: 6px;
       background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
+      border-radius: 3px;
       overflow: hidden;
     }
 
@@ -542,7 +745,7 @@
       height: 100%;
       width: 0%;
       background: var(--safety-orange);
-      border-radius: 4px;
+      border-radius: 3px;
       transition: width 0.08s linear, background-color 0.2s ease;
     }
 
@@ -554,7 +757,7 @@
       font-weight: 700;
       color: #94A3B8;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 6px;
+      padding-top: 5px;
     }
 
     .hud-counter-badge {
@@ -570,11 +773,12 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Bottom Driver Action Buttons (in remaining 25%) */
+    /* Bottom Driver Action Buttons (in remaining space) */
     .driver-actions {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      margin-top: auto;
     }
 
     .btn-primary {
@@ -609,7 +813,7 @@
       background: var(--bg-white);
       color: var(--text-main);
       border: 1px solid var(--border-light);
-      padding: 10px 14px;
+      padding: 9px 12px;
       font-size: 12px;
       font-weight: 700;
       border-radius: 12px;
@@ -708,7 +912,46 @@
       transform: scale(0.96);
     }
 
-    /* Right Control & Telemetry Panel */
+    /* 4. SHIFT SUMMARY VIEW */
+    .summary-view {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 8px;
+    }
+
+    .score-circle-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+
+    .score-number {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--status-green);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--status-green-light);
+      color: var(--status-green);
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 20px;
+      border: 1px solid #BBF7D0;
+    }
+
+    /* Right Control & Telemetry Panel (Presentation Mode) */
     .control-panel {
       background: var(--bg-white);
       border: 1px solid var(--border-light);
@@ -717,7 +960,7 @@
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
     .panel-section-title {
@@ -752,34 +995,6 @@
       cursor: pointer;
     }
 
-    .trigger-buttons-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .btn-test {
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 700;
-      border: 1px solid var(--border-light);
-      background: var(--surface-muted);
-      color: var(--text-main);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.15s ease;
-    }
-
-    .btn-test:hover {
-      background: #FFFFFF;
-      border-color: var(--safety-orange);
-      color: var(--safety-orange);
-    }
-
     .spec-card {
       background: var(--surface-muted);
       border: 1px solid var(--border-light);
@@ -811,44 +1026,6 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Step 3 Shift Summary Sheet */
-    .summary-container {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .score-circle-card {
-      background: var(--surface-muted);
-      border: 1px solid var(--border-light);
-      border-radius: 16px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 8px;
-    }
-
-    .score-number {
-      font-size: 48px;
-      font-weight: 900;
-      color: var(--status-green);
-      font-family: 'JetBrains Mono', monospace;
-      line-height: 1;
-    }
-
-    .score-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      background: var(--status-green-light);
-      color: var(--status-green);
-      font-size: 12px;
-      font-weight: 800;
-      border-radius: 20px;
-      border: 1px solid #BBF7D0;
-    }
-
     .telemetry-log-box {
       background: #0F172A;
       color: #94A3B8;
@@ -856,7 +1033,7 @@
       padding: 12px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      height: 110px;
+      height: 120px;
       overflow-y: auto;
       line-height: 1.5;
     }
@@ -891,22 +1068,88 @@
         <!-- Phone Internal Screen -->
         <div class="app-screen" id="appScreen">
           
-          <!-- Screen Tabs for Inspector -->
-          <div class="tab-bar">
-            <button class="tab-btn active" id="tabActive" onclick="setScreenView('active')">Active Drive</button>
-            <button class="tab-btn" id="tabWarning" onclick="setScreenView('warning')">Level 1 Warn</button>
-            <button class="tab-btn" id="tabEmergency" onclick="setScreenView('emergency')">Level 2 Alarm</button>
-            <button class="tab-btn" id="tabSummary" onclick="setScreenView('summary')">Step 3 Summary</button>
+          <!-- SCREEN 1: ANIMATED SPLASH SCREEN -->
+          <div class="splash-view" id="viewSplash">
+            <div class="splash-badge-hindi">जाग्रत</div>
+            <div class="animated-letters" id="letterContainer">
+              <!-- Rendered via JS with staggered animations -->
+            </div>
+            <p class="splash-tagline">AI-Powered Commercial Driver Fatigue & Microsleep Prevention System</p>
+            <div class="splash-loader-track">
+              <div class="splash-loader-bar"></div>
+            </div>
+            <button class="btn-skip-splash" onclick="goToLogin()">Skip Intro &rarr;</button>
           </div>
 
-          <!-- 1. ACTIVE DRIVE VIEW (75% CAMERA VIEWPORT) -->
-          <div id="viewActiveDrive">
+          <!-- SCREEN 2: DRIVER ONBOARDING / LOGIN -->
+          <div class="login-view" id="viewLogin">
+            <div class="login-header">
+              <div style="font-size:24px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
+              <div class="login-title">Driver Onboarding</div>
+              <div class="login-subtitle">Commercial Fleet Shift Authentication</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Driver Full Name</label>
+              <input type="text" class="form-input" id="inputDriverName" value="Ramesh Kumar" placeholder="Enter driver name">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Depot / Operating Location</label>
+              <input type="text" class="form-input" id="inputDepot" value="Bengaluru Central Depot" placeholder="Enter depot location">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Mobile Number</label>
+              <input type="tel" class="form-input" id="inputMobile" value="+91 98765 43210" placeholder="+91 XXXXX XXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">One-Time Password (OTP)</label>
+              <div class="otp-row">
+                <input type="text" class="otp-box" value="8" readonly>
+                <input type="text" class="otp-box" value="4" readonly>
+                <input type="text" class="otp-box" value="2" readonly>
+                <input type="text" class="otp-box" value="9" readonly>
+              </div>
+              <div class="otp-verified-badge">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>OTP Verified Successfully</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Vehicle Registration Number</label>
+              <input type="text" class="form-input" id="inputVehicle" value="KA-01-AB-1234" placeholder="e.g. KA-01-AB-1234" style="font-family:'JetBrains Mono'; text-transform:uppercase;">
+            </div>
+
+            <button class="btn-primary" style="margin-top:6px;" onclick="authenticateAndStartDrive()">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Authenticate & Start Drive Shift</span>
+            </button>
+          </div>
+
+          <!-- SCREEN 3: ACTIVE DRIVE VIEW (>75% CAMERA VIEWPORT) -->
+          <div class="drive-view" id="viewActiveDrive">
             <div class="driver-header">
-              <span class="vehicle-tag">KA-01-AB-1234</span>
+              <div class="driver-id-group">
+                <span class="vehicle-tag" id="dispVehicleTag">KA-01-AB-1234</span>
+                <span class="driver-name-tag" id="dispDriverTag">Ramesh K.</span>
+              </div>
               <span class="speed-status-pill armed" id="screenSpeedPill">42 km/h • ARMED</span>
             </div>
 
-            <!-- Front Camera Card (Takes >75% of screen height) -->
+            <!-- Persistent Warning Banner (Visible when >= 2 yawns detected) -->
+            <div class="fatigue-warning-banner" id="fatigueWarningBanner">
+              <span style="font-size:16px;">⚠️</span>
+              <span id="warningBannerText">LEVEL 1 ALERT: 2 YAWNS DETECTED — FATIGUE ACCUMULATING</span>
+            </div>
+
+            <!-- Front Camera Card (>75% of screen height) -->
             <div class="camera-card" id="cameraViewport">
               <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
               <canvas id="meshCanvas" class="mesh-canvas" style="display:none;"></canvas>
@@ -943,12 +1186,11 @@
                 <div class="hud-metrics-row">
                   <div class="hud-chip">
                     <div class="hud-chip-label">
-                      <span>EYE RATIO (EAR)</span>
+                      <span>EYE (EAR)</span>
                       <span class="hud-chip-status status-open" id="earStatusChip">OPEN</span>
                     </div>
                     <div class="hud-chip-value">
                       <span id="earValueText">0.32</span>
-                      <span style="font-size:10px; color:#94A3B8; font-weight:600;">(th: 0.21)</span>
                     </div>
                   </div>
 
@@ -959,7 +1201,16 @@
                     </div>
                     <div class="hud-chip-value">
                       <span id="marValueText">0.18</span>
-                      <span style="font-size:10px; color:#94A3B8; font-weight:600;">(th: 0.58)</span>
+                    </div>
+                  </div>
+
+                  <div class="hud-chip">
+                    <div class="hud-chip-label">
+                      <span>HEAD PITCH</span>
+                      <span class="hud-chip-status" style="background:rgba(255,255,255,0.1); color:#CBD5E1;" id="pitchStatusChip">LEVEL</span>
+                    </div>
+                    <div class="hud-chip-value">
+                      <span id="pitchValueText">0�</span>
                     </div>
                   </div>
                 </div>
@@ -967,7 +1218,7 @@
                 <!-- Microsleep Gauge -->
                 <div class="hud-progress-section">
                   <div class="hud-progress-header">
-                    <span>MICROSLEEP BUFFER (= 1.2s CLOSURE)</span>
+                    <span>MICROSLEEP BUFFER (&ge; 1.2s CLOSURE)</span>
                     <span id="closureDurationText">0.0s / 1.2s</span>
                   </div>
                   <div class="hud-progress-track">
@@ -984,7 +1235,7 @@
                     🥱 Yawns: <span class="hud-counter-num" id="yawnCounterText">0</span>
                   </span>
                   <span class="hud-counter-badge">
-                    🎯 Pitch: <span class="hud-counter-num" id="pitchText">0&deg;</span>
+                    🙇 Head Drops: <span class="hud-counter-num" id="headDropCounterText">0</span>
                   </span>
                 </div>
               </div>
@@ -1004,40 +1255,40 @@
                 </svg>
                 <span>Simulate Road Bump (650ms Cooldown)</span>
               </button>
-              <button class="btn-outline" style="border-color:#CBD5E1; color:var(--text-muted);" onclick="setScreenView('summary')">
+              <button class="btn-outline" style="border-color:#CBD5E1; color:var(--text-muted);" onclick="showSummaryView()">
                 <span>🏁 End Shift & View Safety Scorecard</span>
               </button>
             </div>
           </div>
 
-          <!-- 2. SHIFT SUMMARY VIEW -->
-          <div id="viewSummary" class="summary-container" style="display:none;">
-            <div style="font-size:18px; font-weight:800; color:var(--text-main); margin-bottom:4px;">
+          <!-- SCREEN 4: SHIFT SAFETY SCORECARD -->
+          <div class="summary-view" id="viewSummary">
+            <div style="font-size:18px; font-weight:800; color:var(--text-main); margin-bottom:2px;">
               Shift Safety Scorecard
             </div>
             
             <div class="score-circle-card">
-              <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
                 Commercial Driver Safety Score
               </div>
               <div class="score-number" id="summaryScoreNum">100</div>
               <div class="score-badge" id="summaryScoreBadge">EXCELLENT • ZERO INCIDENTS</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-                Formula: Max(20, 100 - (25 &times; Microsleeps) - (5 &times; Yawns))
+              <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
+                Formula: Max(20, 100 - (25 &times; Microsleeps) - (5 &times; Yawns) - (15 &times; HeadDrops))
               </div>
             </div>
 
             <div class="spec-card">
               <div class="spec-item">
+                <span class="spec-key">Driver Name</span>
+                <span class="spec-val" id="summaryDriverName">Ramesh Kumar</span>
+              </div>
+              <div class="spec-item">
                 <span class="spec-key">Vehicle ID</span>
-                <span class="spec-val">KA-01-AB-1234</span>
+                <span class="spec-val" id="summaryVehicleId">KA-01-AB-1234</span>
               </div>
               <div class="spec-item">
-                <span class="spec-key">Total Drive Time</span>
-                <span class="spec-val" id="summaryDriveTime">00h 42m</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-key">Microsleeps (=1.2s)</span>
+                <span class="spec-key">Microsleeps (&ge;1.2s)</span>
                 <span class="spec-val" id="summaryMicrosleeps" style="color:var(--alert-red);">0</span>
               </div>
               <div class="spec-item">
@@ -1045,13 +1296,20 @@
                 <span class="spec-val" id="summaryYawns" style="color:var(--status-amber);">0</span>
               </div>
               <div class="spec-item">
-                <span class="spec-key">Cloud Telemetry Sync</span>
+                <span class="spec-key">Head Drops (Nodding)</span>
+                <span class="spec-val" id="summaryHeadDrops" style="color:var(--alert-red);">0</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key">Cloud Telemetry Queue</span>
                 <span class="spec-val" style="color:var(--status-green);">SYNCHRONIZED (0.42 KB)</span>
               </div>
             </div>
 
-            <button class="btn-primary" onclick="setScreenView('active')">
+            <button class="btn-primary" onclick="returnToDrive()">
               <span>Return to Active Drive</span>
+            </button>
+            <button class="btn-outline" style="border-color:#FCA5A5; color:#DC2626;" onclick="signOutDriver()">
+              <span>🚪 Sign Out Driver & End Shift</span>
             </button>
           </div>
 
@@ -1065,9 +1323,9 @@
                 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
             </div>
-            <div class="alert-title">CRITICAL ALERT<br>MICROSLEEP DETECTED</div>
+            <div class="alert-title" id="alertTitleText">CRITICAL ALERT<br>MICROSLEEP DETECTED</div>
             <div class="alert-subtitle" id="alertSubtitleText">
-              Eyes closed sustained = 1.2s. Tap below or keep eyes open for 2.0s to disarm buzzer.
+              Eyes closed sustained &ge; 1.2s. Tap below or keep eyes open for 2.0s to disarm buzzer.
             </div>
           </div>
           <button class="btn-i-am-awake" onclick="dismissEmergencyAlert()">
@@ -1078,7 +1336,7 @@
       </div>
     </div>
 
-    <!-- Right Side Simulator & Telemetry Inspector -->
+    <!-- Right Side Telemetry & Presentation Inspector -->
     <div class="control-panel">
       <div class="panel-section-title">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1095,33 +1353,8 @@
         </div>
         <input type="range" min="0" max="110" value="42" class="slider-input" id="gpsSlider" oninput="updateGpsSpeed(this.value)">
         <p style="font-size:11px; color:var(--text-subtle);">
-          Safety Rule: Gating active. Standby mode suppresses alarms below 10 km/h (e.g. traffic light/toll).
+          Gating active: Alarms suppressed below 10 km/h (e.g. traffic signal/toll stop).
         </p>
-      </div>
-
-      <!-- Manual Test Triggers -->
-      <div class="control-row">
-        <div class="control-label-group">
-          <span>Manual Stress Test Triggers</span>
-        </div>
-        <div class="trigger-buttons-grid">
-          <button class="btn-test" onclick="simulateEyeClosure(18)">
-            <span style="font-size:16px;">😴</span>
-            <span>Simulate 1.2s Microsleep</span>
-          </button>
-          <button class="btn-test" onclick="simulateLevel1Warning()">
-            <span style="font-size:16px;">🥱</span>
-            <span>Simulate Yawn (Level 1)</span>
-          </button>
-          <button class="btn-test" onclick="simulateHeadDrop()">
-            <span style="font-size:16px;">🙇‍♂️</span>
-            <span>Simulate Head Drop</span>
-          </button>
-          <button class="btn-test" onclick="triggerPotholeShock()">
-            <span style="font-size:16px;">🕳️</span>
-            <span>Pothole Shock (&gt;1.8G)</span>
-          </button>
-        </div>
       </div>
 
       <!-- Live Event Telemetry Stream -->
@@ -1140,7 +1373,7 @@
       <!-- Constraints Card -->
       <div class="spec-card">
         <div class="spec-item">
-          <span class="spec-key">Front Camera Allocation</span>
+          <span class="spec-key">Front Camera Viewport</span>
           <span class="spec-val">&gt; 75% Screen Viewport</span>
         </div>
         <div class="spec-item">
@@ -1148,12 +1381,20 @@
           <span class="spec-val">Google MediaPipe Face Mesh (Wasm)</span>
         </div>
         <div class="spec-item">
-          <span class="spec-key">EAR Microsleep Threshold</span>
-          <span class="spec-val">&lt; 0.21 for = 1.2s (Buzzer)</span>
+          <span class="spec-key">EAR Microsleep Trigger</span>
+          <span class="spec-val">&lt; 0.21 for &ge; 1.2s (Level 2 Siren)</span>
         </div>
         <div class="spec-item">
-          <span class="spec-key">MAR Yawn Threshold</span>
-          <span class="spec-val">&gt; 0.58 for = 1.8s (Chime)</span>
+          <span class="spec-key">MAR Yawn Sensitivity</span>
+          <span class="spec-val">&gt; 0.50 for &ge; 1.0s (Level 1 Chime)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Yawn Warning Escalation</span>
+          <span class="spec-val">&ge; 2 Yawns triggers warning banner</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Head Drop / Nod Pitch</span>
+          <span class="spec-val">Pitch &lt; -18� for &ge; 1.0s (Level 2 Siren)</span>
         </div>
         <div class="spec-item">
           <span class="spec-key">Pothole Vector Gating</span>
@@ -1166,7 +1407,14 @@
   </main>
 
   <script>
-    // --- STATE VARIABLES ---
+    // --- APP FLOW & STATE ---
+    let driverData = {
+      name: 'Ramesh Kumar',
+      depot: 'Bengaluru Central Depot',
+      mobile: '+91 98765 43210',
+      vehicle: 'KA-01-AB-1234'
+    };
+
     let currentSpeed = 42;
     let isArmed = true;
     let cameraActive = false;
@@ -1180,9 +1428,11 @@
     let eyeOpenContinuousStart = null;
     let yawnStartTime = null;
     let yawnCounted = false;
+    let headDropStartTime = null;
+    
     let microsleepCount = 0;
     let yawnCount = 0;
-    let distractionCount = 0;
+    let headDropCount = 0;
     let potholeCooldownUntil = 0;
     let lastFpsTime = Date.now();
     let frameCounter = 0;
@@ -1190,9 +1440,84 @@
     // Web Audio Synthesizer
     let audioCtx = null;
     let sirenOsc1 = null;
-    let sirenOsc2 = null;
     let sirenTimer = null;
 
+    // --- INITIALIZE LETTER ANIMATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const brandStr = "JAAGRAT";
+      const container = document.getElementById('letterContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < brandStr.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = brandStr[i];
+        span.style.animationDelay = (i * 0.12) + 's';
+        container.appendChild(span);
+      }
+
+      // Auto-transition from Splash to Login after 2.4s
+      setTimeout(() => {
+        const splash = document.getElementById('viewSplash');
+        if (splash.style.display !== 'none') {
+          goToLogin();
+        }
+      }, 2400);
+    });
+
+    function goToLogin() {
+      const splash = document.getElementById('viewSplash');
+      splash.style.display = 'none';
+      document.getElementById('viewLogin').style.display = 'flex';
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+    }
+
+    function authenticateAndStartDrive() {
+      initAudio();
+      driverData.name = document.getElementById('inputDriverName').value || 'Ramesh Kumar';
+      driverData.depot = document.getElementById('inputDepot').value || 'Bengaluru';
+      driverData.mobile = document.getElementById('inputMobile').value || '+91 98765 43210';
+      driverData.vehicle = document.getElementById('inputVehicle').value || 'KA-01-AB-1234';
+
+      document.getElementById('dispVehicleTag').textContent = driverData.vehicle;
+      document.getElementById('dispDriverTag').textContent = driverData.name.split(' ')[0] + ' ' + (driverData.name.split(' ')[1] ? driverData.name.split(' ')[1][0] + '.' : '');
+      document.getElementById('summaryDriverName').textContent = driverData.name;
+      document.getElementById('summaryVehicleId').textContent = driverData.vehicle;
+
+      document.getElementById('viewLogin').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'flex';
+      logEvent(`Driver ${driverData.name} authenticated with vehicle ${driverData.vehicle}`);
+
+      // Auto-start front camera on drive start!
+      if (!cameraActive) {
+        toggleFrontCamera();
+      }
+    }
+
+    function showSummaryView() {
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'flex';
+      calculateSafetyScore();
+    }
+
+    function returnToDrive() {
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'flex';
+    }
+
+    function signOutDriver() {
+      if (cameraActive) {
+        toggleFrontCamera();
+      }
+      stopEmergencyBuzzer();
+      document.getElementById('emergencyModal').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      goToLogin();
+      logEvent('Driver signed out from shift.');
+    }
+
+    // --- AUDIO GENERATOR ---
     function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1212,7 +1537,7 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // Play Level 1 Warning Chime (Pleasant dual tone)
+    // Play Level 1 Warning Chime
     function playWarningChime() {
       initAudio();
       try {
@@ -1223,25 +1548,25 @@
         osc1.type = 'sine';
         osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
         osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.15); // E6
+        osc2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.12); // E6
 
         gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.65);
 
         osc1.connect(gain);
         osc2.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc1.start();
-        osc1.stop(audioCtx.currentTime + 0.15);
-        osc2.start(audioCtx.currentTime + 0.15);
-        osc2.stop(audioCtx.currentTime + 0.7);
+        osc1.stop(audioCtx.currentTime + 0.12);
+        osc2.start(audioCtx.currentTime + 0.12);
+        osc2.stop(audioCtx.currentTime + 0.65);
       } catch (e) {
         console.error('Audio chime error:', e);
       }
     }
 
-    // Play Level 2 Emergency Siren (Cockpit Master Alert buzzer)
+    // Play Level 2 Emergency Siren
     function playEmergencyBuzzer() {
       initAudio();
       stopEmergencyBuzzer();
@@ -1258,13 +1583,12 @@
           if (!sirenOsc1) return;
           high = !high;
           sirenOsc1.frequency.setValueAtTime(high ? 2400 : 1800, audioCtx.currentTime);
-        }, 120);
+        }, 110);
 
         sirenOsc1.connect(gain);
         gain.connect(audioCtx.destination);
         sirenOsc1.start();
 
-        // Mobile haptic vibration if supported
         if (navigator.vibrate) {
           navigator.vibrate([200, 100, 200, 100, 400]);
         }
@@ -1308,7 +1632,7 @@
 
     // --- ROAD BUMP / POTHOLE SUPPRESSION ---
     function triggerPotholeShock() {
-      potholeCooldownUntil = Date.now() + 650; // 650ms cooldown
+      potholeCooldownUntil = Date.now() + 650;
       const card = document.getElementById('cameraViewport');
       card.style.transform = 'translateY(-8px)';
       setTimeout(() => card.style.transform = 'translateY(8px)', 80);
@@ -1336,7 +1660,6 @@
     }
 
     function calculateEAR(lm, idxs) {
-      // idxs: [p1_outer, p2_top1, p3_top2, p4_inner, p5_bottom2, p6_bottom1]
       const v1 = dist(lm[idxs[1]], lm[idxs[5]]);
       const v2 = dist(lm[idxs[2]], lm[idxs[4]]);
       const h  = dist(lm[idxs[0]], lm[idxs[3]]);
@@ -1344,7 +1667,6 @@
     }
 
     function calculateMAR(lm) {
-      // 13: upper, 14: lower, 78: left corner, 308: right corner
       const v = dist(lm[13], lm[14]);
       const h = dist(lm[78], lm[308]);
       return v / (h || 0.001);
@@ -1424,7 +1746,6 @@
           btnText.textContent = 'Start AI Front Camera';
         }
       } else {
-        // Stop Camera
         cameraActive = false;
         if (videoStream) {
           videoStream.getTracks().forEach(t => t.stop());
@@ -1482,22 +1803,25 @@
       reticle.className = 'reticle-oval tracking';
 
       // 1. Calculate EAR (Eye Aspect Ratio)
-      // Left eye: [33, 160, 158, 133, 153, 144]
-      // Right eye: [362, 385, 387, 263, 373, 380]
       const leftEar = calculateEAR(lm, [33, 160, 158, 133, 153, 144]);
       const rightEar = calculateEAR(lm, [362, 385, 387, 263, 373, 380]);
       const currentEar = (leftEar + rightEar) / 2.0;
 
-      // 2. Calculate MAR (Mouth Aspect Ratio)
+      // 2. Calculate MAR (Mouth Aspect Ratio) - Lowered threshold to 0.50 for high responsiveness
       const currentMar = calculateMAR(lm);
 
-      // 3. Approximate Pitch (Nodding off)
-      const forehead = lm[10];
-      const nose = lm[1];
-      const chin = lm[152];
-      const pitchRatio = dist(nose, chin) / (dist(forehead, nose) || 0.001);
-      const pitchDeg = Math.round((pitchRatio - 1.1) * 35);
-      document.getElementById('pitchText').textContent = `${pitchDeg}&deg;`;
+      // 3. Accurate Head Pitch (Nodding down detection)
+      // Landmark 10: Forehead top | Landmark 1: Nose tip | Landmark 152: Chin
+      const foreheadY = lm[10].y;
+      const noseY = lm[1].y;
+      const chinY = lm[152].y;
+      const upperFaceH = Math.max(0.01, noseY - foreheadY);
+      const lowerFaceH = Math.max(0.01, chinY - noseY);
+      const pitchRatio = lowerFaceH / upperFaceH; // When head drops, chin moves up towards nose in 2D perspective, ratio drops < 0.65
+
+      // Estimated tilt degrees: level is ~0 deg, tilted down is negative
+      const pitchDeg = Math.round((pitchRatio - 1.0) * 45);
+      document.getElementById('pitchValueText').textContent = `${pitchDeg}�`;
 
       // Update HUD Values
       document.getElementById('earValueText').textContent = currentEar.toFixed(2);
@@ -1505,30 +1829,27 @@
 
       const earChip = document.getElementById('earStatusChip');
       const marChip = document.getElementById('marStatusChip');
+      const pitchChip = document.getElementById('pitchStatusChip');
 
-      // --- DRAW CANVASE MESH OVERLAY ---
+      // --- DRAW CANVAS MESH OVERLAY ---
       ctx.lineWidth = 2.5;
 
-      // Draw Eye Contours
       const eyeClosed = currentEar < 0.21;
       const eyeStroke = eyeClosed ? '#EF4444' : '#22C55E';
       ctx.strokeStyle = eyeStroke;
       ctx.fillStyle = eyeClosed ? 'rgba(239, 68, 68, 0.35)' : 'rgba(34, 197, 94, 0.25)';
 
-      // Draw Left Eye
       drawPolygon(ctx, canvas, lm, [33, 160, 158, 133, 153, 144]);
-      // Draw Right Eye
       drawPolygon(ctx, canvas, lm, [362, 385, 387, 263, 373, 380]);
 
-      // Draw Irises
       if (lm[468] && lm[473]) {
         ctx.fillStyle = '#06B6D4';
         drawCircle(ctx, canvas, lm[468], 3.5);
         drawCircle(ctx, canvas, lm[473], 3.5);
       }
 
-      // Draw Mouth Contour
-      const isYawning = currentMar > 0.58;
+      // Draw Mouth Contour (Yawn threshold is 0.50)
+      const isYawning = currentMar > 0.48;
       ctx.strokeStyle = isYawning ? '#F59E0B' : '#06B6D4';
       ctx.fillStyle = isYawning ? 'rgba(245, 158, 11, 0.4)' : 'rgba(6, 182, 212, 0.15)';
       drawPolygon(ctx, canvas, lm, [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78]);
@@ -1537,7 +1858,31 @@
       const now = Date.now();
       const inCooldown = now < potholeCooldownUntil;
 
-      // 1. Yawn Detection
+      // 1. Head Drop / Nodding Off Detection (pitchDeg < -16 or pitchRatio < 0.65)
+      const isHeadDropped = pitchDeg < -12 || pitchRatio < 0.75;
+      if (isHeadDropped && isArmed && !inCooldown) {
+        pitchChip.textContent = 'HEAD DROP';
+        pitchChip.className = 'hud-chip-status status-pitch';
+
+        if (!headDropStartTime) headDropStartTime = now;
+        const dropDur = now - headDropStartTime;
+
+        if (dropDur >= 1000 && !isLevel2AlarmActive) { // 1.0s sustained head drop
+          isLevel2AlarmActive = true;
+          headDropCount++;
+          document.getElementById('headDropCounterText').textContent = headDropCount;
+          triggerEmergencyModal('CRITICAL: HEAD DROP / NOD-OFF DETECTED');
+          logEvent(`LEVEL 2 EMERGENCY: Sustained Head Drop (>1.0s). Incident #${headDropCount}`);
+        }
+      } else {
+        pitchChip.textContent = 'LEVEL';
+        pitchChip.className = 'hud-chip-status';
+        pitchChip.style.background = 'rgba(255,255,255,0.1)';
+        pitchChip.style.color = '#CBD5E1';
+        headDropStartTime = null;
+      }
+
+      // 2. Yawn Detection (Sensitivity: MAR > 0.50 for >= 1.0s)
       if (isYawning && isArmed && !inCooldown) {
         reticle.className = 'reticle-oval yawning';
         marChip.textContent = 'YAWN';
@@ -1546,25 +1891,33 @@
         if (!yawnStartTime) yawnStartTime = now;
         const yawnDur = now - yawnStartTime;
 
-        if (yawnDur >= 1800 && !yawnCounted) {
+        if (yawnDur >= 1000 && !yawnCounted) { // 1.0s yawn duration as requested!
           yawnCounted = true;
           yawnCount++;
           document.getElementById('yawnCounterText').textContent = yawnCount;
           playWarningChime();
-          logEvent(`LEVEL 1 ALERT: Sustained yawn detected (${(yawnDur/1000).toFixed(1)}s). Total: ${yawnCount}`);
+          logEvent(`LEVEL 1 ALERT: Yawn detected (${(yawnDur/1000).toFixed(1)}s). Total: ${yawnCount}`);
+
+          // Escalation after 2+ yawns!
+          if (yawnCount >= 2) {
+            const banner = document.getElementById('fatigueWarningBanner');
+            banner.style.display = 'flex';
+            document.getElementById('warningBannerText').textContent = `⚠️ LEVEL 1 WARNING: ${yawnCount} YAWNS DETECTED — FATIGUE ACCUMULATING. REST ADVISED.`;
+            logEvent(`FATIGUE ESCALATION: ${yawnCount} yawns logged. Warning banner triggered.`);
+          }
         }
       } else {
         marChip.textContent = 'NORMAL';
         marChip.className = 'hud-chip-status';
         marChip.style.background = 'rgba(255,255,255,0.1)';
         marChip.style.color = '#CBD5E1';
-        if (currentMar < 0.45) {
+        if (currentMar < 0.40) {
           yawnStartTime = null;
           yawnCounted = false;
         }
       }
 
-      // 2. Eye Closure / Microsleep Detection (1.2s threshold)
+      // 3. Eye Closure / Microsleep Detection (1.2s threshold)
       if (eyeClosed && isArmed && !inCooldown) {
         earChip.textContent = 'CLOSED';
         earChip.className = 'hud-chip-status status-closed';
@@ -1584,7 +1937,7 @@
           isLevel2AlarmActive = true;
           microsleepCount++;
           document.getElementById('microsleepCounterText').textContent = microsleepCount;
-          triggerEmergencyModal('MICROSLEEP DETECTED: Eyes closed = 1.2s');
+          triggerEmergencyModal('CRITICAL: MICROSLEEP DETECTED (Eyes closed ≥ 1.2s)');
           logEvent(`LEVEL 2 EMERGENCY: Microsleep confirmed (>1.2s). Incident #${microsleepCount}`);
         }
       } else {
@@ -1639,6 +1992,7 @@
       modal.style.display = 'flex';
       reticle.className = 'reticle-oval alarm';
       if (reason) {
+        document.getElementById('alertTitleText').textContent = 'CRITICAL ALERT\n' + (reason.includes('HEAD DROP') ? 'HEAD DROP DETECTED' : 'MICROSLEEP DETECTED');
         document.getElementById('alertSubtitleText').textContent = reason + '. Tap below or keep eyes open for 2.0s to disarm.';
       }
       playEmergencyBuzzer();
@@ -1657,66 +2011,8 @@
       document.getElementById('closureDurationText').textContent = '0.0s / 1.2s';
       eyeClosedStartTime = null;
       eyeOpenContinuousStart = null;
+      headDropStartTime = null;
       logEvent('Emergency alert disarmed by driver confirmation.');
-    }
-
-    function simulateEyeClosure(frames) {
-      if (!isArmed) {
-        alert('Speed is < 10 km/h (Standby mode). Alarms are suppressed while vehicle is stopped!');
-        return;
-      }
-      setScreenView('active');
-      let count = 0;
-      const maxF = 18; // 1.2s at 15 FPS
-
-      document.getElementById('earStatusChip').textContent = 'CLOSED';
-      document.getElementById('earStatusChip').className = 'hud-chip-status status-closed';
-      document.getElementById('earValueText').textContent = '0.12';
-
-      const interval = setInterval(() => {
-        count++;
-        const pct = Math.min(100, (count / maxF) * 100);
-        document.getElementById('closureProgressFill').style.width = pct + '%';
-        document.getElementById('closureDurationText').textContent = `${((count / 15)).toFixed(1)}s / 1.2s`;
-
-        if (count >= maxF) {
-          clearInterval(interval);
-          triggerEmergencyModal('SIMULATED: Eyes closed sustained = 1.2s');
-        }
-      }, 66);
-    }
-
-    function simulateLevel1Warning() {
-      if (!isArmed) {
-        alert('Speed is < 10 km/h. Alarms suppressed.');
-        return;
-      }
-      setScreenView('active');
-      yawnCount++;
-      document.getElementById('yawnCounterText').textContent = yawnCount;
-      playWarningChime();
-
-      const pill = document.getElementById('screenSpeedPill');
-      const orig = pill.textContent;
-      pill.textContent = 'LEVEL 1: YAWN DETECTED';
-      pill.className = 'speed-status-pill standby';
-      logEvent(`Simulated Yawn Level 1 Warning (#${yawnCount})`);
-
-      setTimeout(() => {
-        pill.textContent = orig;
-        updateGpsSpeed(currentSpeed);
-      }, 2500);
-    }
-
-    function simulateHeadDrop() {
-      if (!isArmed) {
-        alert('Speed is < 10 km/h (Standby mode).');
-        return;
-      }
-      setScreenView('active');
-      distractionCount++;
-      triggerEmergencyModal('HEAD DROP: Pitch > 20° sustained');
-      logEvent('Head drop simulated (>20° tilt)');
     }
 
     function toggleFullscreenCam() {
@@ -1729,42 +2025,15 @@
       }
     }
 
-    // --- SCREEN NAVIGATION ---
-    function setScreenView(view) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      const viewActive = document.getElementById('viewActiveDrive');
-      const viewSummary = document.getElementById('viewSummary');
-
-      if (view === 'active') {
-        document.getElementById('tabActive').classList.add('active');
-        viewActive.style.display = 'block';
-        viewSummary.style.display = 'none';
-      } else if (view === 'warning') {
-        document.getElementById('tabWarning').classList.add('active');
-        viewActive.style.display = 'block';
-        viewSummary.style.display = 'none';
-        simulateLevel1Warning();
-      } else if (view === 'emergency') {
-        document.getElementById('tabEmergency').classList.add('active');
-        viewActive.style.display = 'block';
-        viewSummary.style.display = 'none';
-        triggerEmergencyModal('Manual Test: Level 2 Siren Triggered');
-      } else if (view === 'summary') {
-        document.getElementById('tabSummary').classList.add('active');
-        viewActive.style.display = 'none';
-        viewSummary.style.display = 'flex';
-        calculateSafetyScore();
-      }
-    }
-
     function calculateSafetyScore() {
-      // Formula: Max(20, 100 - (25 * microsleeps) - (5 * yawns) - (10 * distractions))
-      const penalty = (microsleepCount * 25) + (yawnCount * 5) + (distractionCount * 10);
+      // Formula: Max(20, 100 - (25 * microsleeps) - (5 * yawns) - (15 * headDrops))
+      const penalty = (microsleepCount * 25) + (yawnCount * 5) + (headDropCount * 15);
       const score = Math.max(20, 100 - penalty);
 
       document.getElementById('summaryScoreNum').textContent = score;
       document.getElementById('summaryMicrosleeps').textContent = microsleepCount;
       document.getElementById('summaryYawns').textContent = yawnCount;
+      document.getElementById('summaryHeadDrops').textContent = headDropCount;
 
       const badge = document.getElementById('summaryScoreBadge');
       if (score >= 85) {
