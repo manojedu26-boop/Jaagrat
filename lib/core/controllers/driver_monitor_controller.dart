@@ -8,6 +8,7 @@ import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detectio
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../services/audio_alert_manager.dart';
+export '../services/audio_alert_manager.dart' show AlertLevel;
 import '../services/telemetry_service.dart';
 import '../models/fatigue_event.dart';
 

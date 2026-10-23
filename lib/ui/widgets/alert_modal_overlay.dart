@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/controllers/driver_monitor_controller.dart';
+import '../../core/services/audio_alert_manager.dart';
 
 class AlertModalOverlay extends StatefulWidget {
   final AlertLevel alertLevel;
