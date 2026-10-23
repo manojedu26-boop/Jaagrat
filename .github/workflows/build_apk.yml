@@ -37,14 +37,29 @@ jobs:
 
       - name: Configure Android Build & MinSdk
         run: |
-          sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          # Support both build.gradle and build.gradle.kts (Kotlin DSL in Flutter 3.22+)
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/minSdk = .*/minSdk = 21/g' android/app/build.gradle.kts || true
+            sed -i 's/minSdkVersion = .*/minSdkVersion = 21/g' android/app/build.gradle.kts || true
+          fi
+          if [ -f android/app/build.gradle ]; then
+            sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          fi
 
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Analyze Dart Code
+        run: flutter analyze --no-fatal-infos
+
       - name: Build Android Release APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: |
+          flutter build apk --release --no-tree-shake-icons -v > /tmp/flutter_build.log 2>&1 || {
+            echo "==================== BUILD ERROR LOG ===================="
+            tail -n 250 /tmp/flutter_build.log
+            exit 1
+          }
 
       - name: Upload Jaagrat APK Artifact
         uses: actions/upload-artifact@v4
