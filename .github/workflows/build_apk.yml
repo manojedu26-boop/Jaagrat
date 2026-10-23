@@ -57,30 +57,12 @@ jobs:
 
       - name: Build Android Release APK
         run: |
-          flutter build apk --release --no-tree-shake-icons 2>&1 | tee flutter_build.log || {
-            echo "========== GRADLE BUILD FAILURE SUMMARY =========="
-            grep -E "FAILURE|Exception|error:|FAILED" flutter_build.log -A 4 -B 1 | head -n 100 || true
-            echo "========== LAST 50 LINES =========="
-            tail -n 50 flutter_build.log
-            exit 1
-          }
-
-      - name: Locate APK Files
-        run: |
-          echo "=== FOUND APK FILES ==="
-          find . -name "*.apk" -print
+          set -o pipefail
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Jaagrat APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: jaagrat-driver-app-release
-          path: "**/*.apk"
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-
-      - name: Upload Build Log Artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: flutter-build-log
-          path: flutter_build.log
-          if-no-files-found: ignore
