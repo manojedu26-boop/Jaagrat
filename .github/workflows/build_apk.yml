@@ -54,12 +54,14 @@ jobs:
           flutter build apk --release --no-tree-shake-icons -v > build.log 2>&1
           BUILD_EXIT=$?
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "::error::Flutter build failed with exit code $BUILD_EXIT"
-            echo "=== LAST 300 LINES OF BUILD LOG ==="
-            tail -n 300 build.log
-            echo "=== DETECTED COMPILATION ERRORS ==="
-            grep -E "FAILURE:|error:|exception|Caused by:|compile.*Error" -C 3 build.log || true
+            echo "## ❌ Android Build Failed (Exit Code: $BUILD_EXIT)" >> $GITHUB_STEP_SUMMARY
+            echo "### Last 150 Lines of Build Log" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 150 build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             exit $BUILD_EXIT
+          else
+            echo "## ✅ Android Release APK Generated Successfully!" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Verify APK Generation
