@@ -35,20 +35,6 @@ jobs:
           cp /tmp/pubspec_custom.yaml pubspec.yaml
           cp /tmp/backup_android/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
 
-      - name: Configure Android Build & MinSdk
-        run: |
-          # Ensure minSdk is 21 and multiDex is enabled for ML Kit & Firebase
-          if [ -f android/app/build.gradle.kts ]; then
-            sed -i 's/minSdk = .*/minSdk = 21/g' android/app/build.gradle.kts || true
-            sed -i 's/minSdkVersion = .*/minSdkVersion = 21/g' android/app/build.gradle.kts || true
-            sed -i '/defaultConfig {/a \        multiDexEnabled = true' android/app/build.gradle.kts || true
-          fi
-          if [ -f android/app/build.gradle ]; then
-            sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
-            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
-            sed -i '/defaultConfig {/a \        multiDexEnabled true' android/app/build.gradle || true
-          fi
-
       - name: Install Dependencies
         run: flutter pub get
 
@@ -59,6 +45,9 @@ jobs:
         run: |
           set -o pipefail
           flutter build apk --release --no-tree-shake-icons
+
+      - name: Verify APK Generation
+        run: ls -la build/app/outputs/flutter-apk/
 
       - name: Upload Jaagrat APK Artifact
         uses: actions/upload-artifact@v4
