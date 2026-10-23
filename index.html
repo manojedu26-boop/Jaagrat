@@ -450,7 +450,7 @@
       margin-top: 2px;
     }
 
-    /* 3. ACTIVE DRIVE VIEW */
+    /* 3. ACTIVE DRIVE VIEW - CLEAN, MINIMALIST AUTOMOTIVE DESIGN */
     .drive-view {
       display: none;
       flex-direction: column;
@@ -509,40 +509,19 @@
       border: 1px solid #FDE68A;
     }
 
-    /* Persistent Warning Banner (Appears after 2+ yawns) */
-    .fatigue-warning-banner {
-      display: none;
-      background: #FEF3C7;
-      border: 1.5px solid #F59E0B;
-      color: #92400E;
-      border-radius: 10px;
-      padding: 7px 10px;
-      font-size: 11px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      align-items: center;
-      gap: 8px;
-      animation: bannerSlide 0.3s ease;
-    }
-
-    @keyframes bannerSlide {
-      from { transform: translateY(-8px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* Camera Viewport Card (OCCUPIES >75% OF SCREEN HEIGHT) */
+    /* Clean Camera Card (>75% of screen height) */
     .camera-card {
       position: relative;
       width: 100%;
-      height: 550px; /* >75% of app screen */
-      background: #0B0F19;
-      border-radius: 20px;
+      height: 570px;
+      background: #090D16;
+      border-radius: 24px;
       overflow: hidden;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
       border: 2px solid var(--border-light);
       transition: all 0.3s ease;
     }
@@ -593,12 +572,12 @@
       padding: 20px;
     }
 
-    /* Overlaid HUD Elements Inside Camera (Top Bar) */
+    /* Minimalist Top HUD Bar */
     .cam-hud-top {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -606,38 +585,38 @@
     }
 
     .cv-badge {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(8px);
       color: #FFFFFF;
       font-size: 11px;
       font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 8px;
+      padding: 5px 10px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       gap: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .live-dot {
       width: 7px;
       height: 7px;
-      background: #EF4444;
+      background: #22C55E;
       border-radius: 50%;
-      animation: blink-dot 1s infinite;
+      animation: blink-dot 1.5s infinite;
     }
 
     @keyframes blink-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.3; transform: scale(0.85); }
+      50% { opacity: 0.35; transform: scale(0.85); }
     }
 
     .cam-btn-expand {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(8px);
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
       width: 32px;
       height: 32px;
       display: flex;
@@ -651,8 +630,8 @@
       background: var(--safety-orange);
     }
 
-    /* Reticle & Guidance Center */
-    .reticle-container {
+    /* Sleek Corner Brackets Face Frame (Subtle, Not Clumsy) */
+    .face-bracket-box {
       position: absolute;
       top: 38%;
       left: 50%;
@@ -661,177 +640,128 @@
       height: 220px;
       pointer-events: none;
       z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    .reticle-oval {
-      width: 100%;
-      height: 100%;
-      border: 2px dashed rgba(255, 255, 255, 0.4);
-      border-radius: 50%;
-      transition: all 0.2s ease;
-    }
-
-    .reticle-oval.tracking {
-      border: 2.5px solid #22C55E;
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.45);
-    }
-
-    .reticle-oval.yawning {
-      border: 2.5px solid #F59E0B;
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.5);
-    }
-
-    .reticle-oval.alarm {
-      border: 3.5px solid #EF4444;
-      animation: reticle-pulse 0.4s infinite alternate;
-    }
-
-    @keyframes reticle-pulse {
-      from { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
-      to { box-shadow: 0 0 30px rgba(239, 68, 68, 0.95); }
-    }
-
-    /* Overlaid HUD Elements Inside Camera (Bottom Glass Panel) */
-    .cam-hud-bottom {
+    .bracket {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 14px;
-      padding: 10px 12px;
+      width: 20px;
+      height: 20px;
+      border-color: rgba(255, 255, 255, 0.45);
+      border-style: solid;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .bracket-tl { top: 0; left: 0; border-width: 2.5px 0 0 2.5px; border-top-left-radius: 6px; }
+    .bracket-tr { top: 0; right: 0; border-width: 2.5px 2.5px 0 0; border-top-right-radius: 6px; }
+    .bracket-bl { bottom: 0; left: 0; border-width: 0 0 2.5px 2.5px; border-bottom-left-radius: 6px; }
+    .bracket-br { bottom: 0; right: 0; border-width: 0 2.5px 2.5px 0; border-bottom-right-radius: 6px; }
+
+    .face-bracket-box.tracking .bracket {
+      border-color: #22C55E;
+      filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.6));
+    }
+
+    .face-bracket-box.yawning .bracket {
+      border-color: #F59E0B;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+    }
+
+    .face-bracket-box.alarm .bracket {
+      border-color: #EF4444;
+      animation: alertBracket 0.4s infinite alternate;
+    }
+
+    @keyframes alertBracket {
+      from { transform: scale(1); filter: drop-shadow(0 0 4px #EF4444); }
+      to { transform: scale(1.08); filter: drop-shadow(0 0 14px #EF4444); }
+    }
+
+    /* CLEAN UNIFIED DRIVER STATUS PILL (Replaces all clumsy chips) */
+    .driver-status-card {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      padding: 10px 14px;
       z-index: 10;
       display: flex;
-      flex-direction: column;
-      gap: 7px;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
     }
 
-    .hud-metrics-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
+    .status-orb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #22C55E;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+      flex-shrink: 0;
+      transition: background 0.2s, box-shadow 0.2s;
     }
 
-    .hud-chip {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 5px 6px;
+    .driver-status-card.state-yawn .status-orb {
+      background: #F59E0B;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
+    }
+
+    .driver-status-card.state-drowsy .status-orb {
+      background: #EF4444;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 1);
+      animation: blink-dot 0.5s infinite;
+    }
+
+    .status-info {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
-    .hud-chip-label {
-      font-size: 9px;
-      font-weight: 700;
+    .status-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.2px;
+    }
+
+    .status-sub {
+      font-size: 10px;
+      font-weight: 600;
       color: #94A3B8;
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
 
-    .hud-chip-value {
-      font-size: 14px;
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      color: #FFFFFF;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-
-    .hud-chip-status {
-      font-size: 9px;
-      font-weight: 800;
-      padding: 1px 4px;
-      border-radius: 3px;
-      text-transform: uppercase;
-    }
-
-    .hud-chip-status.status-open {
-      background: rgba(34, 197, 94, 0.25);
-      color: #4ADE80;
-    }
-
-    .hud-chip-status.status-closed {
-      background: rgba(239, 68, 68, 0.35);
-      color: #F87171;
-    }
-
-    .hud-chip-status.status-yawn {
-      background: rgba(245, 158, 11, 0.35);
-      color: #FBBF24;
-    }
-
-    .hud-chip-status.status-pitch {
-      background: rgba(239, 68, 68, 0.35);
-      color: #F87171;
-    }
-
-    /* Countdown Progress Bar (1.2s Eye Closure) */
-    .hud-progress-section {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .hud-progress-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      font-weight: 700;
-      color: #CBD5E1;
-    }
-
-    .hud-progress-track {
+    /* Minimalist Microsleep Progress Line (Fills only on eye closure) */
+    .closure-line-track {
       width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 3px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 2px;
       overflow: hidden;
+      margin-top: 4px;
     }
 
-    .hud-progress-fill {
+    .closure-line-fill {
       height: 100%;
       width: 0%;
       background: var(--safety-orange);
-      border-radius: 3px;
+      border-radius: 2px;
       transition: width 0.08s linear, background-color 0.2s ease;
-    }
-
-    .hud-counters-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: #94A3B8;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 5px;
-    }
-
-    .hud-counter-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #F1F5F9;
-    }
-
-    .hud-counter-num {
-      color: var(--safety-orange);
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
     }
 
     /* Bottom Driver Action Buttons */
     .driver-actions {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
       margin-top: auto;
     }
 
@@ -1133,7 +1063,7 @@
       <div class="brand-badge">जाग्रत</div>
       <div class="brand-meta">
         <h1>Jaagrat Driver Fatigue Guard</h1>
-        <p>Commercial Fleet Safety System — Multi-Language AI Vision</p>
+        <p>Commercial Fleet Safety System — Minimalist Driver HUD</p>
       </div>
     </div>
     <div class="nav-actions">
@@ -1157,9 +1087,7 @@
           <!-- SCREEN 1: ANIMATED SPLASH SCREEN -->
           <div class="splash-view" id="viewSplash">
             <div class="splash-badge-hindi">जाग्रत</div>
-            <div class="animated-letters" id="letterContainer">
-              <!-- Rendered via JS with staggered animations -->
-            </div>
+            <div class="animated-letters" id="letterContainer"></div>
             <p class="splash-tagline">AI-Powered Commercial Driver Fatigue & Microsleep Prevention System</p>
             <div class="splash-loader-track">
               <div class="splash-loader-bar"></div>
@@ -1239,7 +1167,7 @@
             </button>
           </div>
 
-          <!-- SCREEN 3: ACTIVE DRIVE VIEW (>75% CAMERA VIEWPORT) -->
+          <!-- SCREEN 3: ACTIVE DRIVE VIEW - PURE SLEEK AUTOMOTIVE HUD -->
           <div class="drive-view" id="viewActiveDrive">
             <div class="driver-header">
               <div class="driver-id-group">
@@ -1249,102 +1177,58 @@
               <span class="speed-status-pill armed" id="screenSpeedPill">42 km/h • ARMED</span>
             </div>
 
-            <!-- Persistent Warning Banner (Visible when >= 2 yawns detected) -->
-            <div class="fatigue-warning-banner" id="fatigueWarningBanner">
-              <span style="font-size:16px;">⚠️</span>
-              <span id="warningBannerText">LEVEL 1 ALERT: 2 YAWNS DETECTED — REST ADVISED</span>
-            </div>
-
-            <!-- Front Camera Card (>75% of screen height) -->
+            <!-- Front Camera Card (Clean, Uncluttered, >75% of screen height) -->
             <div class="camera-card" id="cameraViewport">
               <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
               <canvas id="meshCanvas" class="mesh-canvas" style="display:none;"></canvas>
               
               <div class="camera-fallback-graphic" id="cameraFallback">
-                <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                   <circle cx="12" cy="13" r="4"></circle>
                 </svg>
                 <div style="font-size:14px; font-weight:800; color:#E2E8F0;" id="t_frontCamReady">Front Camera Ready</div>
-                <div style="font-size:11px; color:#94A3B8; max-width:220px;" id="t_tapStartCam">Tap "Start AI Front Camera" below to initiate real-time facial landmark detection</div>
+                <div style="font-size:11px; color:#94A3B8; max-width:230px;" id="t_tapStartCam">Tap "Start AI Front Camera" below to initiate real-time facial landmark detection</div>
               </div>
 
-              <!-- Overlaid Top Bar -->
+              <!-- Overlaid Top Bar (Discreet & Clean) -->
               <div class="cam-hud-top">
                 <div class="cv-badge">
                   <span class="live-dot" id="liveDot"></span>
-                  <span id="cvFpsText">AI VISION READY</span>
+                  <span id="cvFpsText">AI GUARD ACTIVE</span>
                 </div>
                 <button class="cam-btn-expand" onclick="toggleFullscreenCam()" title="Toggle Fullscreen Cam">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                   </svg>
                 </button>
               </div>
 
-              <!-- Face Guide Reticle -->
-              <div class="reticle-container">
-                <div class="reticle-oval" id="reticleOval"></div>
+              <!-- Subtle Corner Brackets (Autofocus HUD) -->
+              <div class="face-bracket-box" id="faceBracketBox">
+                <div class="bracket bracket-tl"></div>
+                <div class="bracket bracket-tr"></div>
+                <div class="bracket bracket-bl"></div>
+                <div class="bracket bracket-br"></div>
               </div>
 
-              <!-- Floating Bottom HUD Inside Camera -->
-              <div class="cam-hud-bottom">
-                <div class="hud-metrics-row">
-                  <div class="hud-chip">
-                    <div class="hud-chip-label">
-                      <span id="t_earLabel">EYE (EAR)</span>
-                      <span class="hud-chip-status status-open" id="earStatusChip">OPEN</span>
-                    </div>
-                    <div class="hud-chip-value">
-                      <span id="earValueText">0.32</span>
-                    </div>
+              <!-- CLEAN UNIFIED DRIVER STATUS CARD -->
+              <div class="driver-status-card" id="driverStatusCard">
+                <div class="status-orb" id="statusOrb"></div>
+                <div class="status-info">
+                  <div class="status-title" id="driverStatusTitle">Focused & Attentive</div>
+                  <div class="status-sub">
+                    <span id="driverStatusSubtitle">AI Fatigue Guard Active</span>
+                    <span style="opacity:0.6;">•</span>
+                    <span id="sessionIncidentsBadge">0 Incidents</span>
                   </div>
-
-                  <div class="hud-chip">
-                    <div class="hud-chip-label">
-                      <span id="t_marLabel">MOUTH (MAR)</span>
-                      <span class="hud-chip-status" style="background:rgba(255,255,255,0.1); color:#CBD5E1;" id="marStatusChip">NORMAL</span>
-                    </div>
-                    <div class="hud-chip-value">
-                      <span id="marValueText">0.18</span>
-                    </div>
+                  <!-- Closure line: fills smoothly when eyes are closed -->
+                  <div class="closure-line-track">
+                    <div class="closure-line-fill" id="closureLineFill"></div>
                   </div>
-
-                  <div class="hud-chip">
-                    <div class="hud-chip-label">
-                      <span id="t_pitchLabel">PITCH</span>
-                      <span class="hud-chip-status" style="background:rgba(255,255,255,0.1); color:#CBD5E1;" id="pitchStatusChip">LEVEL</span>
-                    </div>
-                    <div class="hud-chip-value">
-                      <span id="pitchValueText">0°</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Microsleep Gauge -->
-                <div class="hud-progress-section">
-                  <div class="hud-progress-header">
-                    <span id="t_microsleepBuffer">MICROSLEEP BUFFER (≥ 1.2s CLOSURE)</span>
-                    <span id="closureDurationText">0.0s / 1.2s</span>
-                  </div>
-                  <div class="hud-progress-track">
-                    <div class="hud-progress-fill" id="closureProgressFill"></div>
-                  </div>
-                </div>
-
-                <!-- Counters Row -->
-                <div class="hud-counters-row">
-                  <span class="hud-counter-badge">
-                    ⚡ <span id="t_microsleepsCount">Microsleeps</span>: <span class="hud-counter-num" id="microsleepCounterText">0</span>
-                  </span>
-                  <span class="hud-counter-badge">
-                    🥱 <span id="t_yawnsCount">Yawns</span>: <span class="hud-counter-num" id="yawnCounterText">0</span>
-                  </span>
-                  <span class="hud-counter-badge">
-                    🙇 <span id="t_headDropsCount">Head Drops</span>: <span class="hud-counter-num" id="headDropCounterText">0</span>
-                  </span>
                 </div>
               </div>
+
             </div>
 
             <!-- Bottom Driver Action Controls -->
@@ -1356,7 +1240,7 @@
                 <span id="btnToggleCamText">Start AI Front Camera</span>
               </button>
               <button class="btn-outline" onclick="triggerPotholeShock()">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
                 <span id="t_roadBump">Simulate Road Bump (650ms Cooldown)</span>
@@ -1435,7 +1319,7 @@
                 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
             </div>
-            <div class="alert-title" id="alertTitleText">CRITICAL ALERT<br>MICROSLEEP DETECTED</div>
+            <div class="alert-title" id="alertTitleText">CRITICAL ALERT: MICROSLEEP DETECTED</div>
             <div class="alert-subtitle" id="alertSubtitleText">
               Eyes closed sustained ≥ 1.2s. Tap below or keep eyes open for 2.0s to disarm buzzer.
             </div>
@@ -1478,12 +1362,16 @@
         <div class="telemetry-log-box" id="telemetryLogBox">
           <div>[18:40:02] Engine Started • GPS Armed (42 km/h)</div>
           <div>[18:40:03] MediaPipe FaceMesh Engine Initialized</div>
-          <div>[18:40:05] Baseline Locked: EAR 0.32, MAR 0.18</div>
+          <div>[18:40:05] Baseline Locked: Attentive Driver State</div>
         </div>
       </div>
 
       <!-- Constraints Card -->
       <div class="spec-card">
+        <div class="spec-item">
+          <span class="spec-key">Driver HUD Design</span>
+          <span class="spec-val">Clean Minimalist Automotive</span>
+        </div>
         <div class="spec-item">
           <span class="spec-key">Multi-Language Core</span>
           <span class="spec-val">8 Indian Native Languages</span>
@@ -1507,10 +1395,6 @@
         <div class="spec-item">
           <span class="spec-key">EAR Microsleep Trigger</span>
           <span class="spec-val">&lt; 0.21 for &ge; 1.2s (Level 2 Siren)</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-key">Pothole Vector Gating</span>
-          <span class="spec-val">&gt; 18 m/s&sup2; (650ms Cooldown)</span>
         </div>
       </div>
 
@@ -1536,24 +1420,21 @@
         standby: "STANDBY",
         frontCamReady: "Front Camera Ready",
         tapStartCam: "Tap 'Start AI Front Camera' below to initiate real-time facial landmark detection",
-        earLabel: "EYE (EAR)",
-        marLabel: "MOUTH (MAR)",
-        pitchLabel: "PITCH",
-        open: "OPEN",
-        closed: "CLOSED",
-        normal: "NORMAL",
-        yawn: "YAWN",
-        level: "LEVEL",
-        headDrop: "HEAD DROP",
-        microsleepBuffer: "MICROSLEEP BUFFER (≥ 1.2s CLOSURE)",
-        microsleepsCount: "Microsleeps",
-        yawnsCount: "Yawns",
-        headDropsCount: "Head Drops",
+        focusedAlert: "Focused & Attentive",
+        focusedSub: "AI Fatigue Guard Active",
+        yawnWarning: "Yawn Detected — Stay Alert",
+        yawnSub: "Take a deep breath or sip water",
+        drowsyWarning: "Eyes Closing — Wake Up!",
+        drowsySub: "Sustained closure will trigger siren",
+        headDropWarning: "Head Drop — Keep Eyes on Road",
+        headDropSub: "Posture tilt detected",
+        noFaceWarning: "Searching for Driver Face...",
+        noFaceSub: "Align face inside dashboard frame",
+        incidentsLabel: "{n} Incidents",
         startCam: "Start AI Front Camera",
         stopCam: "Stop AI Front Camera",
         roadBump: "Simulate Road Bump (650ms Cooldown)",
         endShift: "🏁 End Shift & View Safety Scorecard",
-        yawnBanner: "LEVEL 1 ALERT: {n} YAWNS DETECTED — REST ADVISED",
         criticalMicrosleepTitle: "CRITICAL ALERT: MICROSLEEP DETECTED",
         criticalHeadDropTitle: "CRITICAL ALERT: HEAD DROP DETECTED",
         criticalYawnsTitle: "CRITICAL ALERT: 4+ YAWNS (FATIGUE RISK)",
@@ -1587,24 +1468,21 @@
         standby: "स्टैंडबाय",
         frontCamReady: "फ्रंट कैमरा तैयार है",
         tapStartCam: "रीयल-टाइम चेहरे की निगरानी शुरू करने के लिए नीचे टैप करें",
-        earLabel: "आँख (EAR)",
-        marLabel: "मुँह (MAR)",
-        pitchLabel: "झुकाव",
-        open: "खुली",
-        closed: "बंद",
-        normal: "सामान्य",
-        yawn: "जम्हाई",
-        level: "सीधा",
-        headDrop: "सिर झुका",
-        microsleepBuffer: "माइक्रोस्लीप बफर (≥ 1.2s आँख बंद)",
-        microsleepsCount: "माइक्रोस्लीप",
-        yawnsCount: "जम्हाई",
-        headDropsCount: "सिर झुकना",
+        focusedAlert: "सतर्क और केंद्रित",
+        focusedSub: "एआई सुरक्षा गार्ड सक्रिय",
+        yawnWarning: "जम्हाई दर्ज — सतर्क रहें",
+        yawnSub: "पानी पिएं या गहरी सांस लें",
+        drowsyWarning: "आँखें बंद हो रही हैं — जागें!",
+        drowsySub: "लगातार बंद रहने पर सायरन बजेगा",
+        headDropWarning: "सिर झुका — सड़क पर ध्यान दें",
+        headDropSub: "ड्राइवर का सिर आगे झुक गया है",
+        noFaceWarning: "ड्राइवर का चेहरा खोज रहे हैं...",
+        noFaceSub: "चेहरे को कैमरे के सामने रखें",
+        incidentsLabel: "{n} घटनाएं",
         startCam: "एआई फ्रंट कैमरा शुरू करें",
         stopCam: "फ्रंट कैमरा बंद करें",
-        roadBump: "सड़क के गड्ढे का झटका (650ms)",
+        roadBump: "सड़क के झटके का सिमुलेशन (650ms)",
         endShift: "🏁 शिफ्ट समाप्त करें और सुरक्षा रिपोर्ट देखें",
-        yawnBanner: "स्तर 1 चेतावनी: {n} जम्हाई दर्ज — थकान बढ़ रही है, आराम करें",
         criticalMicrosleepTitle: "गंभीर चेतावनी: माइक्रोस्लीप का पता चला",
         criticalHeadDropTitle: "गंभीर चेतावनी: सिर झुकने का पता चला",
         criticalYawnsTitle: "गंभीर चेतावनी: 4+ जम्हाई (अत्यधिक थकान)",
@@ -1638,28 +1516,25 @@
         standby: "ಸ್ಟ್ಯಾಂಡ್‌ಬೈ",
         frontCamReady: "ಕ್ಯಾಮೆರಾ ಸಿದ್ಧವಾಗಿದೆ",
         tapStartCam: "ಮುಖ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ಕೆಳಗೆ ಕ್ಲಿಕ್ ಮಾಡಿ",
-        earLabel: "ಕಣ್ಣು (EAR)",
-        marLabel: "ಬಾಯಿ (MAR)",
-        pitchLabel: "ಭಂಗಿ",
-        open: "ತೆರೆದಿದೆ",
-        closed: "ಮುಚ್ಚಿದೆ",
-        normal: "ಸಾಮಾನ್ಯ",
-        yawn: "ಆಕಳಿಕೆ",
-        level: "ನೇರ",
-        headDrop: "ತಲೆ ಬಾಗಿದೆ",
-        microsleepBuffer: "ಮೈಕ್ರೋಸ್ಲೀಪ್ ಬಫರ್ (≥ 1.2s ಮುಚ್ಚುವಿಕೆ)",
-        microsleepsCount: "ಮೈಕ್ರೋಸ್ಲೀಪ್‌ಗಳು",
-        yawnsCount: "ಆಕಳಿಕೆಗಳು",
-        headDropsCount: "ತಲೆ ಬಾಗುವಿಕೆ",
+        focusedAlert: "ಗಮನ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ",
+        focusedSub: "AI ಚಾಲನಾ ಕಾವಲು ಸಕ್ರಿಯ",
+        yawnWarning: "ಆಕಳಿಕೆ ಪತ್ತೆಯಾಗಿದೆ — ಎಚ್ಚರವಿರಿ",
+        yawnSub: "ನೀರು ಕುಡಿಯಿರಿ ಅಥವಾ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ",
+        drowsyWarning: "ಕಣ್ಣುಗಳು ಮುಚ್ಚುತ್ತಿವೆ — ಎಚ್ಚರ!",
+        drowsySub: "ಮುಚ್ಚಿದರೆ ತಕ್ಷಣ ಸೈರನ್ ಮೊಳಗುತ್ತದೆ",
+        headDropWarning: "ತಲೆ ಬಾಗಿದೆ — ರಸ್ತೆಯ ಮೇಲೆ ಗಮನವಿರಲಿ",
+        headDropSub: "ತಲೆ ಮುಂದಕ್ಕೆ ಬಾಗಿರುವುದು ಕಂಡುಬಂದಿದೆ",
+        noFaceWarning: "ಮುಖವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+        noFaceSub: "ಕ್ಯಾಮೆರಾ ಎದುರು ಮುಖವನ್ನು ನೇರವಾಗಿಡಿ",
+        incidentsLabel: "{n} ಘಟನೆಗಳು",
         startCam: "AI ಕ್ಯಾಮೆರಾ ಪ್ರಾರಂಭಿಸಿ",
         stopCam: "ಕ್ಯಾಮೆರಾ ನಿಲ್ಲಿಸಿ",
         roadBump: "ರಸ್ತೆ ತಗ್ಗು ಅನುಕರಣೆ (650ms)",
         endShift: "🏁 ಶಿಫ್ಟ್ ಮುಕ್ತಾಯ ಮತ್ತು ಸುರಕ್ಷತಾ ವರದಿ",
-        yawnBanner: "ಹಂತ 1 ಎಚ್ಚರಿಕೆ: {n} ಆಕಳಿಕೆಗಳು ಪತ್ತೆಯಾಗಿವೆ — ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ",
         criticalMicrosleepTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: ಮೈಕ್ರೋಸ್ಲೀಪ್ ಪತ್ತೆಯಾಗಿದೆ",
         criticalHeadDropTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: ತಲೆ ಬಾಗುವುದು ಪತ್ತೆಯಾಗಿದೆ",
         criticalYawnsTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: 4+ ಆಕಳಿಕೆಗಳು (ವಾಹನ ನಿಲ್ಲಿಸಿ)",
-        disarmInstruction: "ಅಲಾರಾಂ ನಿಲ್ಲಿಸಲು ಕೆಳಗೆ ಒತ್ತಿ ಅಥವಾ 2 ಸೆಕೆಂಡು ಕಣ್ಣು ತೆರೆಯಿರಿ.",
+        disarmText: "ಅಲಾರಾಂ ನಿಲ್ಲಿಸಲು ಕೆಳಗೆ ಒತ್ತಿ ಅಥವಾ 2 ಸೆಕೆಂಡು ಕಣ್ಣು ತೆರೆಯಿರಿ.",
         iAmAwake: "ನಾನು ಎಚ್ಚರವಾಗಿದ್ದೇನೆ (I AM AWAKE)",
         shiftScorecard: "ಶಿಫ್ಟ್ ಸುರಕ್ಷತಾ ಸ್ಕೋರ್‌ಕಾರ್ಡ್",
         scoreSubtitle: "ಚಾಲಕರ ಸುರಕ್ಷತಾ ಸ್ಕೋರ್",
@@ -1689,24 +1564,21 @@
         standby: "காத்திருப்பு",
         frontCamReady: "கேமரா தயாராக உள்ளது",
         tapStartCam: "முக கண்காணிப்பைத் தொடங்க கீழே தட்டவும்",
-        earLabel: "கண் (EAR)",
-        marLabel: "வாய் (MAR)",
-        pitchLabel: "சாய்வு",
-        open: "திறந்துள்ளது",
-        closed: "மூடியுள்ளது",
-        normal: "இயல்பு",
-        yawn: "கொட்டாவி",
-        level: "நேரானது",
-        headDrop: "தலை சரிந்தது",
-        microsleepBuffer: "மைக்ரோஸ்லீப் பஃபர் (≥ 1.2s மூடல்)",
-        microsleepsCount: "மைக்ரோஸ்லீப்",
-        yawnsCount: "கொட்டாவிகள்",
-        headDropsCount: "தலை சரிவு",
+        focusedAlert: "கவனமுடன் உள்ளார்",
+        focusedSub: "AI பாதுகாப்பு இயங்குகிறது",
+        yawnWarning: "கொட்டாவி — விழிப்புடன் இருங்கள்",
+        yawnSub: "தண்ணீர் அருந்தவும் அல்லது ஓய்வெடுக்கவும்",
+        drowsyWarning: "கண்கள் மூடுகின்றன — விழித்திருங்கள்!",
+        drowsySub: "கண்கள் மூடினால் சைரன் ஒலிக்கும்",
+        headDropWarning: "தலை சரிந்தது — சாலையில் கவனம்",
+        headDropSub: "தலை குனிவது கண்டறியப்பட்டது",
+        noFaceWarning: "முகம் தேடப்படுகிறது...",
+        noFaceSub: "கேமராவின் முன் சரியாக அமருங்கள்",
+        incidentsLabel: "{n} நிகழ்வுகள்",
         startCam: "AI முன் கேமராவைத் தொடங்கு",
         stopCam: "முன் கேமராவை நிறுத்து",
         roadBump: "சாலை மேடு உருவகப்படுத்துதல் (650ms)",
         endShift: "🏁 பயணத்தை முடித்து அறிக்கை பார்க்க",
-        yawnBanner: "நிலை 1 எச்சரிக்கை: {n} கொட்டாவிகள் — ஓய்வெடுக்க பரிந்துரைக்கப்படுகிறது",
         criticalMicrosleepTitle: "முக்கிய எச்சரிக்கை: மைக்ரோஸ்லீப் கண்டறியப்பட்டது",
         criticalHeadDropTitle: "முக்கிய எச்சரிக்கை: தலை சாய்வு கண்டறியப்பட்டது",
         criticalYawnsTitle: "முக்கிய எச்சரிக்கை: 4+ கொட்டாவிகள் (அதிக சோர்வு)",
@@ -1740,24 +1612,21 @@
         standby: "స్టాండ్‌బై",
         frontCamReady: "కెమెరా సిద్ధంగా ఉంది",
         tapStartCam: "ఫేస్ మానిటరింగ్ ప్రారంభించడానికి క్రింద నొక్కండి",
-        earLabel: "కన్ను (EAR)",
-        marLabel: "నోరు (MAR)",
-        pitchLabel: "వంపు",
-        open: "తెరిచి ఉంది",
-        closed: "మూసి ఉంది",
-        normal: "సాధారణం",
-        yawn: "ఆవలింత",
-        level: "సమాంతరంగా",
-        headDrop: "తల వాలింది",
-        microsleepBuffer: "మైక్రోస్లీప్ బఫర్ (≥ 1.2s మూసివేత)",
-        microsleepsCount: "మైక్రోస్లీప్స్",
-        yawnsCount: "ఆవలింతలు",
-        headDropsCount: "తల వాలడం",
+        focusedAlert: "ఏకాగ్రతతో ఉన్నారు",
+        focusedSub: "AI రక్షణ సక్రియంగా ఉంది",
+        yawnWarning: "ఆవలింత — అప్రమత్తంగా ఉండండి",
+        yawnSub: "మంచినీరు తాగండి లేదా విశ్రాంతి తీసుకోండి",
+        drowsyWarning: "కళ్ళు మూసుకుంటున్నాయి — మేల్కొనండి!",
+        drowsySub: "మూసుకుంటే సైరన్ మోగుతుంది",
+        headDropWarning: "తల వాలింది — రోడ్డుపై దృష్టి పెట్టండి",
+        headDropSub: "తల క్రిందికి వాలినట్లు గుర్తించబడింది",
+        noFaceWarning: "ముఖం కోసం వెతుకుతోంది...",
+        noFaceSub: "కెమెరా ముందు ముఖం నిటారుగా ఉంచండి",
+        incidentsLabel: "{n} సంఘటనలు",
         startCam: "AI కెమెరాను ప్రారంభించండి",
         stopCam: "కెమెరాను ఆపివేయండి",
         roadBump: "రోడ్డు గుంతల షాక్ సిమ్యులేషన్ (650ms)",
         endShift: "🏁 షిఫ్ట్ ముగించి భద్రతా నివేదిక చూడండి",
-        yawnBanner: "స్థాయి 1 హెచ్చరిక: {n} ఆవలింతలు గుర్తించబడ్డాయి — విశ్రాంతి తీసుకోండి",
         criticalMicrosleepTitle: "తీవ్రమైన హెచ్చరిక: మైక్రోస్లీప్ గుర్తించబడింది",
         criticalHeadDropTitle: "తీవ్రమైన హెచ్చరిక: తల వాలడం గుర్తించబడింది",
         criticalYawnsTitle: "తీవ్ర హెచ్చరిక: 4+ ఆవలింతలు (వాహనం ఆపండి)",
@@ -1791,24 +1660,21 @@
         standby: "स्टँडबाय",
         frontCamReady: "समोरचा कॅमेरा तयार आहे",
         tapStartCam: "चेहरा ट्रॅकिंग सुरू करण्यासाठी खाली टॅप करा",
-        earLabel: "डोळा (EAR)",
-        marLabel: "तोंड (MAR)",
-        pitchLabel: "कल",
-        open: "उघडा",
-        closed: "बंद",
-        normal: "सामान्य",
-        yawn: "जांभई",
-        level: "सरळ",
-        headDrop: "मान झुकली",
-        microsleepBuffer: "मायक्रोस्लीप बफर (≥ 1.2s डोळे बंद)",
-        microsleepsCount: "मायक्रोस्लीप्स",
-        yawnsCount: "जांभया",
-        headDropsCount: "मान झुकणे",
+        focusedAlert: "सतर्क आणि लक्ष केंद्रित",
+        focusedSub: "AI सुरक्षा रक्षक सक्रिय",
+        yawnWarning: "जांभई आढळली — जागे राहा",
+        yawnSub: "पाणी प्या किंवा विश्रांती घ्या",
+        drowsyWarning: "डोळे मिटत आहेत — जागे व्हा!",
+        drowsySub: "मिटलेले राहिल्यास सायरन वाजेल",
+        headDropWarning: "मान झुकली — रस्त्याकडे लक्ष द्या",
+        headDropSub: "डोके पुढे झुकल्याचे आढळले",
+        noFaceWarning: "चेहरा शोधत आहे...",
+        noFaceSub: "कॅमेऱ्यासमोर सरळ बसा",
+        incidentsLabel: "{n} घटना",
         startCam: "AI कॅमेरा सुरू करा",
         stopCam: "कॅमेरा बंद करा",
         roadBump: "रस्त्यावरील खड्ड्यांचा धक्का (650ms)",
         endShift: "🏁 शिफ्ट संपवा आणि सुरक्षा अहवाल पहा",
-        yawnBanner: "पातळी 1 इशारा: {n} जांभया नोंदवल्या — विश्रांतीची गरज आहे",
         criticalMicrosleepTitle: "गंभीर इशारा: मायक्रोस्लीप आढळली",
         criticalHeadDropTitle: "गंभीर इशारा: डोके झुकल्याचे आढळले",
         criticalYawnsTitle: "गंभीर इशारा: 4+ जांभया (गाडी बाजूला थांबवा)",
@@ -1842,24 +1708,21 @@
         standby: "স্ট্যান্ডবাই",
         frontCamReady: "সামনের ক্যামেরা প্রস্তুত",
         tapStartCam: "ফেস ট্র্যাকিং শুরু করতে নিচে চাপুন",
-        earLabel: "চোখ (EAR)",
-        marLabel: "মুখ (MAR)",
-        pitchLabel: "অবস্থান",
-        open: "খোলা",
-        closed: "বন্ধ",
-        normal: "স্বাভাবিক",
-        yawn: "হাই তোলা",
-        level: "সোজা",
-        headDrop: "মাথা ঝুঁকেছে",
-        microsleepBuffer: "মাইক্রোস্লিপ বাফার (≥ 1.2s চোখ বন্ধ)",
-        microsleepsCount: "মাইক্রোস্লিপ",
-        yawnsCount: "হাই তোলা",
-        headDropsCount: "মাথা ঝোঁকা",
+        focusedAlert: "মনোযোগী ও সতর্ক",
+        focusedSub: "AI সুরক্ষা ব্যবস্থা সক্রিয়",
+        yawnWarning: "হাই তোলা শনাক্ত — সতর্ক থাকুন",
+        yawnSub: "একটু পানি পান করুন বা বিশ্রাম নিন",
+        drowsyWarning: "চোখ বন্ধ হচ্ছে — জেগে উঠুন!",
+        drowsySub: "চোখ বন্ধ থাকলে সাইরেন বাজবে",
+        headDropWarning: "মাথা ঝুঁকেছে — রাস্তায় নজর রাখুন",
+        headDropSub: "মাথা নিচে ঝুঁকে পড়েছে",
+        noFaceWarning: "ড্রাইভারের মুখ খোঁজা হচ্ছে...",
+        noFaceSub: "ক্যামেরার সামনে সোজা বসুন",
+        incidentsLabel: "{n} টি ঘটনা",
         startCam: "AI ক্যামেরা চালু করুন",
         stopCam: "ক্যামেরা বন্ধ করুন",
         roadBump: "রাস্তার ঝাঁকুনি সিমুলেশন (650ms)",
         endShift: "🏁 শিফট শেষ করুন এবং সুরক্ষা রিপোর্ট দেখুন",
-        yawnBanner: "লেভেল 1 সতর্কতা: {n} বার হাই তুলেছেন — বিশ্রাম নিন",
         criticalMicrosleepTitle: "জরুরি সতর্কতা: মাইক্রোস্লিপ শনাক্ত হয়েছে",
         criticalHeadDropTitle: "জরুরি সতর্কতা: মাথা ঝুঁকে পড়া শনাক্ত হয়েছে",
         criticalYawnsTitle: "জরুরি সতর্কতা: 4+ হাই তোলা (গাড়ি থামান)",
@@ -1893,24 +1756,21 @@
         standby: "સ્ટેન્ડબાય",
         frontCamReady: "કેમેરો તૈયાર છે",
         tapStartCam: "ફેસ મોનિટરિંગ શરૂ કરવા માટે નીચે ટેપ કરો",
-        earLabel: "આંખ (EAR)",
-        marLabel: "મોં (MAR)",
-        pitchLabel: "ઝુકાવ",
-        open: "ખુલ્લી",
-        closed: "બંધ",
-        normal: "સામાન્ય",
-        yawn: "બગાસું",
-        level: "સીધું",
-        headDrop: "માથું ઝૂક્યું",
-        microsleepBuffer: "માઇક્રોસ્લીપ બફર (≥ 1.2s આંખ બંધ)",
-        microsleepsCount: "માઇક્રોસ્લીપ",
-        yawnsCount: "બગાસા",
-        headDropsCount: "માથું ઝૂકવું",
+        focusedAlert: "સતર્ક અને કેન્દ્રિત",
+        focusedSub: "AI સુરક્ષા ગાર્ડ સક્રિય",
+        yawnWarning: "બગાસું જણાયું — જાગૃત રહો",
+        yawnSub: "પાણી પીઓ અથવા ઊંડો શ્વાસ લો",
+        drowsyWarning: "આંખો બંધ થઈ રહી છે — જાગો!",
+        drowsySub: "બંધ રહેવા પર સાયરન વાગશે",
+        headDropWarning: "માથું ઝૂક્યું — રસ્તા પર ધ્યાન આપો",
+        headDropSub: "માથું આગળ ઝૂકેલું જણાયું",
+        noFaceWarning: "ચહેરો શોધી રહ્યા છીએ...",
+        noFaceSub: "કેમેરા સામે સીધા બેસો",
+        incidentsLabel: "{n} ઘટનાઓ",
         startCam: "AI કેમેરો શરૂ કરો",
         stopCam: "કેમેરો બંધ કરો",
         roadBump: "રસ્તાના ખાડાનો આંચકો (650ms)",
         endShift: "🏁 શિફ્ટ સમાપ્ત કરો અને સુરક્ષા રિપોર્ટ જુઓ",
-        yawnBanner: "લેવલ 1 ચેતવણી: {n} બગાસા નોંધાયા — આરામ કરો",
         criticalMicrosleepTitle: "ગંભીર ચેતવણી: માઇક્રોસ્લીપ જણાઈ",
         criticalHeadDropTitle: "ગંભીર ચેતવણી: માથું ઝૂક્યાનું જણાયું",
         criticalYawnsTitle: "ગંભીર ચેતવણી: 4+ બગાસા (વાહન રોકો)",
@@ -1938,14 +1798,12 @@
       currentLang = langKey;
       const dict = i18n[langKey];
 
-      // Update active chip UI
       document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
       const activeBtn = Array.from(document.querySelectorAll('.lang-chip')).find(b => {
         return b.getAttribute('onclick') === "setAppLanguage('" + langKey + "')";
       });
       if (activeBtn) activeBtn.classList.add('active');
 
-      // Update text nodes
       const updateText = (id, val) => {
         const el = document.getElementById(id);
         if (el && val) el.textContent = val;
@@ -1963,13 +1821,6 @@
       updateText('t_startDrive', dict.startDrive);
       updateText('t_frontCamReady', dict.frontCamReady);
       updateText('t_tapStartCam', dict.tapStartCam);
-      updateText('t_earLabel', dict.earLabel);
-      updateText('t_marLabel', dict.marLabel);
-      updateText('t_pitchLabel', dict.pitchLabel);
-      updateText('t_microsleepBuffer', dict.microsleepBuffer);
-      updateText('t_microsleepsCount', dict.microsleepsCount);
-      updateText('t_yawnsCount', dict.yawnsCount);
-      updateText('t_headDropsCount', dict.headDropsCount);
       updateText('t_roadBump', dict.roadBump);
       updateText('t_endShift', dict.endShift);
       updateText('t_shiftScorecard', dict.shiftScorecard);
@@ -1990,6 +1841,7 @@
       }
 
       updateGpsSpeed(currentSpeed);
+      updateDriverStatus();
       if (document.getElementById('viewSummary').style.display !== 'none') {
         calculateSafetyScore();
       }
@@ -2026,6 +1878,9 @@
     let potholeCooldownUntil = 0;
     let lastFpsTime = Date.now();
     let frameCounter = 0;
+
+    // Driver Current State enum: 'focused', 'yawning', 'drowsy', 'headdrop', 'noface'
+    let currentDriverState = 'focused';
 
     // Web Audio Synthesizer
     let audioCtx = null;
@@ -2264,7 +2119,7 @@
     async function initFaceMesh() {
       if (faceMeshInstance) return faceMeshInstance;
 
-      document.getElementById('cvFpsText').textContent = 'LOADING MEDIAPIPE...';
+      document.getElementById('cvFpsText').textContent = 'LOADING AI GUARD...';
       logEvent('Initializing Google MediaPipe FaceMesh engine...');
 
       faceMeshInstance = new FaceMesh({
@@ -2280,7 +2135,7 @@
 
       faceMeshInstance.onResults(onFaceMeshResults);
       await faceMeshInstance.initialize();
-      document.getElementById('cvFpsText').textContent = 'AI VISION 30 FPS';
+      document.getElementById('cvFpsText').textContent = 'AI GUARD 30 FPS';
       logEvent('FaceMesh neural models loaded via WebAssembly.');
       return faceMeshInstance;
     }
@@ -2346,8 +2201,8 @@
         fallback.style.display = 'flex';
         btn.classList.remove('btn-active-cam');
         btnText.textContent = dict.startCam;
-        document.getElementById('cvFpsText').textContent = 'AI VISION READY';
-        document.getElementById('reticleOval').className = 'reticle-oval';
+        document.getElementById('cvFpsText').textContent = 'AI GUARD READY';
+        document.getElementById('faceBracketBox').className = 'face-bracket-box';
         logEvent('Front Camera stopped.');
       }
     }
@@ -2366,7 +2221,41 @@
       }
     }
 
-    // --- PROCESS FACIAL LANDMARKS ---
+    // --- ELEGANT MINIMALIST STATUS UPDATE ---
+    function updateDriverStatus(state) {
+      if (state) currentDriverState = state;
+      const dict = i18n[currentLang] || i18n.en;
+      const card = document.getElementById('driverStatusCard');
+      const title = document.getElementById('driverStatusTitle');
+      const sub = document.getElementById('driverStatusSubtitle');
+      const badge = document.getElementById('sessionIncidentsBadge');
+      const totalIncidents = microsleepCount + yawnCount + headDropCount;
+      badge.textContent = dict.incidentsLabel.replace('{n}', totalIncidents);
+
+      card.classList.remove('state-yawn', 'state-drowsy');
+
+      if (currentDriverState === 'focused') {
+        title.textContent = dict.focusedAlert;
+        sub.textContent = dict.focusedSub;
+      } else if (currentDriverState === 'yawning') {
+        card.classList.add('state-yawn');
+        title.textContent = dict.yawnWarning;
+        sub.textContent = dict.yawnSub;
+      } else if (currentDriverState === 'drowsy') {
+        card.classList.add('state-drowsy');
+        title.textContent = dict.drowsyWarning;
+        sub.textContent = dict.drowsySub;
+      } else if (currentDriverState === 'headdrop') {
+        card.classList.add('state-drowsy');
+        title.textContent = dict.headDropWarning;
+        sub.textContent = dict.headDropSub;
+      } else if (currentDriverState === 'noface') {
+        title.textContent = dict.noFaceWarning;
+        sub.textContent = dict.noFaceSub;
+      }
+    }
+
+    // --- PROCESS FACIAL LANDMARKS (CLEAN MINIMALIST DRAWING) ---
     function onFaceMeshResults(results) {
       const canvas = document.getElementById('meshCanvas');
       const ctx = canvas.getContext('2d');
@@ -2374,30 +2263,29 @@
 
       frameCounter++;
       if (Date.now() - lastFpsTime >= 1000) {
-        document.getElementById('cvFpsText').textContent = 'AI VISION ' + frameCounter + ' FPS';
+        document.getElementById('cvFpsText').textContent = 'AI GUARD ' + frameCounter + ' FPS';
         frameCounter = 0;
         lastFpsTime = Date.now();
       }
 
-      const reticle = document.getElementById('reticleOval');
+      const bracketBox = document.getElementById('faceBracketBox');
       const dict = i18n[currentLang] || i18n.en;
 
       if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
-        reticle.className = 'reticle-oval';
-        document.getElementById('earStatusChip').textContent = 'NO FACE';
-        document.getElementById('earStatusChip').className = 'hud-chip-status';
+        bracketBox.className = 'face-bracket-box';
+        updateDriverStatus('noface');
         return;
       }
 
       const lm = results.multiFaceLandmarks[0];
-      reticle.className = 'reticle-oval tracking';
+      bracketBox.className = 'face-bracket-box tracking';
 
       // 1. EAR (Eye Aspect Ratio)
       const leftEar = calculateEAR(lm, [33, 160, 158, 133, 153, 144]);
       const rightEar = calculateEAR(lm, [362, 385, 387, 263, 373, 380]);
       const currentEar = (leftEar + rightEar) / 2.0;
 
-      // 2. MAR (Mouth Aspect Ratio) - 0.48 threshold for responsive yawning
+      // 2. MAR (Mouth Aspect Ratio) - 0.48 threshold
       const currentMar = calculateMAR(lm);
 
       // 3. Accurate Head Pitch (Nodding down detection)
@@ -2409,46 +2297,32 @@
       const pitchRatio = lowerFaceH / upperFaceH;
       const pitchDeg = Math.round((pitchRatio - 1.0) * 45);
 
-      document.getElementById('pitchValueText').textContent = pitchDeg + '°';
-      document.getElementById('earValueText').textContent = currentEar.toFixed(2);
-      document.getElementById('marValueText').textContent = currentMar.toFixed(2);
-
-      const earChip = document.getElementById('earStatusChip');
-      const marChip = document.getElementById('marStatusChip');
-      const pitchChip = document.getElementById('pitchStatusChip');
-
-      // --- DRAW CANVAS MESH OVERLAY ---
-      ctx.lineWidth = 2.5;
-
+      // --- SUBTLE, FUTURISTIC IRIS & EYE TRACKING DOTS (ZERO CLUTTER) ---
       const eyeClosed = currentEar < 0.21;
-      const eyeStroke = eyeClosed ? '#EF4444' : '#22C55E';
-      ctx.strokeStyle = eyeStroke;
-      ctx.fillStyle = eyeClosed ? 'rgba(239, 68, 68, 0.35)' : 'rgba(34, 197, 94, 0.25)';
-
-      drawPolygon(ctx, canvas, lm, [33, 160, 158, 133, 153, 144]);
-      drawPolygon(ctx, canvas, lm, [362, 385, 387, 263, 373, 380]);
-
+      
+      // Draw minimal, elegant glowing iris points
       if (lm[468] && lm[473]) {
-        ctx.fillStyle = '#06B6D4';
-        drawCircle(ctx, canvas, lm[468], 3.5);
-        drawCircle(ctx, canvas, lm[473], 3.5);
+        ctx.fillStyle = eyeClosed ? '#EF4444' : '#22C55E';
+        drawGlowCircle(ctx, canvas, lm[468], 4, eyeClosed ? '#EF4444' : '#22C55E');
+        drawGlowCircle(ctx, canvas, lm[473], 4, eyeClosed ? '#EF4444' : '#22C55E');
       }
 
-      // Draw Mouth Contour (0.48 threshold)
-      const isYawning = currentMar > 0.48;
-      ctx.strokeStyle = isYawning ? '#F59E0B' : '#06B6D4';
-      ctx.fillStyle = isYawning ? 'rgba(245, 158, 11, 0.4)' : 'rgba(6, 182, 212, 0.15)';
-      drawPolygon(ctx, canvas, lm, [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78]);
+      // Draw subtle eye corner dots
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      [33, 133, 362, 263].forEach(idx => {
+        if (lm[idx]) drawCircle(ctx, canvas, lm[idx], 2);
+      });
 
       // --- FATIGUE DETECTION ALGORITHM & BUFFER ---
       const now = Date.now();
       const inCooldown = now < potholeCooldownUntil;
+      const isHeadDropped = pitchDeg < -12 || pitchRatio < 0.75;
+      const isYawning = currentMar > 0.48;
 
       // 1. Head Drop / Nodding Off Detection
-      const isHeadDropped = pitchDeg < -12 || pitchRatio < 0.75;
       if (isHeadDropped && isArmed && !inCooldown) {
-        pitchChip.textContent = dict.headDrop;
-        pitchChip.className = 'hud-chip-status status-pitch';
+        bracketBox.className = 'face-bracket-box alarm';
+        updateDriverStatus('headdrop');
 
         if (!headDropStartTime) headDropStartTime = now;
         const dropDur = now - headDropStartTime;
@@ -2456,23 +2330,17 @@
         if (dropDur >= 1000 && !isLevel2AlarmActive) {
           isLevel2AlarmActive = true;
           headDropCount++;
-          document.getElementById('headDropCounterText').textContent = headDropCount;
           triggerEmergencyModal(dict.criticalHeadDropTitle);
           logEvent('LEVEL 2 EMERGENCY: Head Drop detected (>1.0s). Incident #' + headDropCount);
         }
       } else {
-        pitchChip.textContent = dict.level;
-        pitchChip.className = 'hud-chip-status';
-        pitchChip.style.background = 'rgba(255,255,255,0.1)';
-        pitchChip.style.color = '#CBD5E1';
         headDropStartTime = null;
       }
 
       // 2. Yawn Detection (1.0s Duration & Escalation at 2 and 4+ Yawns)
       if (isYawning && isArmed && !inCooldown) {
-        reticle.className = 'reticle-oval yawning';
-        marChip.textContent = dict.yawn;
-        marChip.className = 'hud-chip-status status-yawn';
+        bracketBox.className = 'face-bracket-box yawning';
+        updateDriverStatus('yawning');
 
         if (!yawnStartTime) yawnStartTime = now;
         const yawnDur = now - yawnStartTime;
@@ -2480,29 +2348,15 @@
         if (yawnDur >= 1000 && !yawnCounted) {
           yawnCounted = true;
           yawnCount++;
-          document.getElementById('yawnCounterText').textContent = yawnCount;
           playWarningChime();
           logEvent('LEVEL 1 ALERT: Yawn detected (' + (yawnDur/1000).toFixed(1) + 's). Total: ' + yawnCount);
 
-          // Task requirement: Every 2 yawns, top banner alert appears
-          if (yawnCount >= 2) {
-            const banner = document.getElementById('fatigueWarningBanner');
-            banner.style.display = 'flex';
-            document.getElementById('warningBannerText').textContent = dict.yawnBanner.replace('{n}', yawnCount);
-            logEvent('FATIGUE ESCALATION: ' + yawnCount + ' yawns logged. Warning banner active.');
-          }
-
-          // Task requirement: At 4 or 5 yawns, BUZZER SOUND MUST COME!
           if (yawnCount >= 4 && !isLevel2AlarmActive) {
             triggerEmergencyModal(dict.criticalYawnsTitle);
             logEvent('LEVEL 2 EMERGENCY: Excessive yawns (' + yawnCount + '). Buzzer triggered!');
           }
         }
       } else {
-        marChip.textContent = dict.normal;
-        marChip.className = 'hud-chip-status';
-        marChip.style.background = 'rgba(255,255,255,0.1)';
-        marChip.style.color = '#CBD5E1';
         if (currentMar < 0.40) {
           yawnStartTime = null;
           yawnCounted = false;
@@ -2511,36 +2365,34 @@
 
       // 3. Eye Closure / Microsleep Detection (1.2s threshold)
       if (eyeClosed && isArmed && !inCooldown) {
-        earChip.textContent = dict.closed;
-        earChip.className = 'hud-chip-status status-closed';
+        bracketBox.className = 'face-bracket-box alarm';
+        updateDriverStatus('drowsy');
 
         if (!eyeClosedStartTime) eyeClosedStartTime = now;
         const closedDur = now - eyeClosedStartTime;
         const pct = Math.min(100, (closedDur / 1200) * 100);
 
-        document.getElementById('closureProgressFill').style.width = pct + '%';
-        document.getElementById('closureDurationText').textContent = (closedDur / 1000).toFixed(1) + 's / 1.2s';
-
+        document.getElementById('closureLineFill').style.width = pct + '%';
         if (pct > 70) {
-          document.getElementById('closureProgressFill').style.backgroundColor = 'var(--alert-red)';
+          document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
         }
 
         if (closedDur >= 1200 && !isLevel2AlarmActive) {
           isLevel2AlarmActive = true;
           microsleepCount++;
-          document.getElementById('microsleepCounterText').textContent = microsleepCount;
           triggerEmergencyModal(dict.criticalMicrosleepTitle);
           logEvent('LEVEL 2 EMERGENCY: Microsleep confirmed (>1.2s). Incident #' + microsleepCount);
         }
       } else {
-        earChip.textContent = dict.open;
-        earChip.className = 'hud-chip-status status-open';
         eyeClosedStartTime = null;
 
         if (!isLevel2AlarmActive) {
-          document.getElementById('closureProgressFill').style.width = '0%';
-          document.getElementById('closureProgressFill').style.backgroundColor = 'var(--safety-orange)';
-          document.getElementById('closureDurationText').textContent = '0.0s / 1.2s';
+          document.getElementById('closureLineFill').style.width = '0%';
+          document.getElementById('closureLineFill').style.backgroundColor = 'var(--safety-orange)';
+        }
+
+        if (!isHeadDropped && !isYawning) {
+          updateDriverStatus('focused');
         }
 
         if (isLevel2AlarmActive) {
@@ -2555,18 +2407,14 @@
       }
     }
 
-    function drawPolygon(ctx, canvas, lm, idxs) {
-      if (idxs.length < 2) return;
+    function drawGlowCircle(ctx, canvas, point, r, color) {
+      ctx.save();
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = color;
       ctx.beginPath();
-      const p0 = lm[idxs[0]];
-      ctx.moveTo(p0.x * canvas.width, p0.y * canvas.height);
-      for (let i = 1; i < idxs.length; i++) {
-        const p = lm[idxs[i]];
-        ctx.lineTo(p.x * canvas.width, p.y * canvas.height);
-      }
-      ctx.closePath();
-      ctx.stroke();
+      ctx.arc(point.x * canvas.width, point.y * canvas.height, r, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
 
     function drawCircle(ctx, canvas, point, r) {
@@ -2579,10 +2427,10 @@
     function triggerEmergencyModal(reason) {
       isLevel2AlarmActive = true;
       const modal = document.getElementById('emergencyModal');
-      const reticle = document.getElementById('reticleOval');
+      const bracketBox = document.getElementById('faceBracketBox');
       const dict = i18n[currentLang] || i18n.en;
       modal.style.display = 'flex';
-      reticle.className = 'reticle-oval alarm';
+      bracketBox.className = 'face-bracket-box alarm';
       if (reason) {
         document.getElementById('alertTitleText').textContent = reason;
         document.getElementById('alertSubtitleText').textContent = dict.disarmText;
@@ -2593,17 +2441,17 @@
     function dismissEmergencyAlert() {
       isLevel2AlarmActive = false;
       const modal = document.getElementById('emergencyModal');
-      const reticle = document.getElementById('reticleOval');
+      const bracketBox = document.getElementById('faceBracketBox');
       modal.style.display = 'none';
-      reticle.className = 'reticle-oval tracking';
+      bracketBox.className = 'face-bracket-box tracking';
       stopEmergencyBuzzer();
 
-      document.getElementById('closureProgressFill').style.width = '0%';
-      document.getElementById('closureProgressFill').style.backgroundColor = 'var(--safety-orange)';
-      document.getElementById('closureDurationText').textContent = '0.0s / 1.2s';
+      document.getElementById('closureLineFill').style.width = '0%';
+      document.getElementById('closureLineFill').style.backgroundColor = 'var(--safety-orange)';
       eyeClosedStartTime = null;
       eyeOpenContinuousStart = null;
       headDropStartTime = null;
+      updateDriverStatus('focused');
       logEvent('Emergency alert disarmed by driver confirmation.');
     }
 
