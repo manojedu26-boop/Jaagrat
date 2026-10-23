@@ -9,6 +9,7 @@ jobs:
   build:
     name: Build Jaagrat Release APK
     runs-on: ubuntu-latest
+    permissions: write-all
 
     steps:
       - name: Checkout repository
@@ -84,3 +85,22 @@ jobs:
         with:
           name: flutter-build-log
           path: build.log
+
+      - name: Post Diagnostics to Commit Comment
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f build.log ]; then
+            FAIL_LOG=$(tail -n 60 build.log)
+            ERRORS=$(grep -E "FAILURE:|error:|exception|Caused by:" -C 2 build.log | head -n 40 || true)
+            COMMENT_BODY=$(jq -n \
+              --arg errors "$ERRORS" \
+              --arg tail "$FAIL_LOG" \
+              '{body: "### ❌ Build Diagnostics Report\n\n**Extracted Errors:**\n```text\n\($errors)\n```\n\n**Log Tail:**\n```text\n\($tail)\n```"}')
+            curl -s -X POST \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+              -d "$COMMENT_BODY"
+          fi
