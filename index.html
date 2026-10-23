@@ -6,7 +6,7 @@
   <title>Jaagrat (जाग्रत) — Commercial Driver Fatigue Detection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+Kannada:wght@500;700;800&family=Noto+Sans+Tamil:wght@500;700;800&family=Noto+Sans+Telugu:wght@500;700;800&family=Noto+Sans+Devanagari:wght@500;700;800&family=Noto+Sans+Bengali:wght@500;700;800&family=Noto+Sans+Gujarati:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+Kannada:wght@500;700;800&family=Noto+Sans+Tamil:wght@500;700;800&family=Noto+Sans+Telugu:wght@500;700;800&family=Noto+Sans+Devanagari:wght@500;700;800&family=Noto+Sans+Bengali:wght@500;700;800&family=Noto+Sans+Gujarati:wght@500;700;800&family=Noto+Sans+Malayalam:wght@500;700;800&family=Noto+Sans+Gurmukhi:wght@500;700;800&family=Noto+Sans+Oriya:wght@500;700;800&display=swap" rel="stylesheet">
 
   <!-- Google MediaPipe Face Mesh & Camera Utils CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -48,7 +48,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Kannada', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali', 'Noto Sans Gujarati', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Kannada', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Malayalam', 'Noto Sans Gurmukhi', 'Noto Sans Oriya', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -192,6 +192,43 @@
       border-radius: 2px;
     }
 
+    /* Fake SMS Dropdown Notification */
+    .sms-toast {
+      position: absolute;
+      top: 26px;
+      left: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      color: white;
+      border-radius: 14px;
+      padding: 10px 12px;
+      z-index: 150;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      animation: toastDrop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes toastDrop {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .sms-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--safety-orange);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
     /* Mobile App Internal Screen */
     .app-screen {
       flex: 1;
@@ -203,7 +240,7 @@
       position: relative;
     }
 
-    /* 1. SPLASH SCREEN (LETTER-BY-LETTER ANIMATION) */
+    /* 1. SPLASH SCREEN */
     .splash-view {
       position: absolute;
       top: 0;
@@ -309,7 +346,99 @@
       cursor: pointer;
     }
 
-    /* 2. DRIVER ONBOARDING / LOGIN VIEW */
+    /* 2. DEDICATED FULL-SCREEN LANGUAGE SELECTION PAGE (STEP 1) */
+    .lang-screen-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      padding-top: 8px;
+    }
+
+    .lang-screen-header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .lang-screen-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .lang-screen-sub {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .lang-grid-12 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 560px;
+      padding-right: 2px;
+      margin-bottom: 12px;
+    }
+
+    .lang-card-item {
+      background: var(--surface-muted);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .lang-card-item:hover {
+      border-color: var(--safety-orange);
+      background: #FFFFFF;
+    }
+
+    .lang-card-item.active {
+      border-color: var(--safety-orange);
+      background: #FFF7ED;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.15);
+    }
+
+    .lang-native-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .lang-card-item.active .lang-native-name {
+      color: var(--safety-orange);
+    }
+
+    .lang-english-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .lang-check-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: var(--safety-orange);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.2s ease;
+    }
+
+    .lang-card-item.active .lang-check-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* 3. DRIVER ONBOARDING / LOGIN VIEW (STEP 2) */
     .login-view {
       display: none;
       flex-direction: column;
@@ -336,61 +465,10 @@
       margin-top: 2px;
     }
 
-    /* Language Selection Chips */
-    .lang-selection-section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      background: var(--surface-muted);
-      border: 1px solid var(--border-light);
-      border-radius: 14px;
-      padding: 10px 12px;
-    }
-
-    .lang-section-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .lang-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-
-    .lang-chip {
-      background: #FFFFFF;
-      border: 1.5px solid var(--border-light);
-      border-radius: 8px;
-      padding: 6px 4px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-main);
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .lang-chip.active {
-      background: var(--safety-orange);
-      color: #FFFFFF;
-      border-color: var(--safety-orange);
-      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
-    }
-
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
     }
 
     .form-label {
@@ -423,12 +501,13 @@
       display: flex;
       gap: 8px;
       justify-content: space-between;
+      align-items: center;
     }
 
     .otp-box {
       flex: 1;
       min-width: 0;
-      max-width: 65px;
+      max-width: 58px;
       text-align: center;
       font-size: 17px;
       font-weight: 800;
@@ -438,6 +517,25 @@
       border-radius: 10px;
       background: var(--surface-muted);
       color: var(--text-main);
+    }
+
+    .btn-send-otp {
+      background: var(--surface-muted);
+      border: 1.5px solid var(--border-light);
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .btn-send-otp:hover {
+      border-color: var(--safety-orange);
+      color: var(--safety-orange);
+      background: #FFF7ED;
     }
 
     .otp-verified-badge {
@@ -450,7 +548,7 @@
       margin-top: 2px;
     }
 
-    /* 3. ACTIVE DRIVE VIEW - CLEAN, MINIMALIST AUTOMOTIVE DESIGN */
+    /* 4. ACTIVE DRIVE VIEW - SLEEK AUTOMOTIVE HUD */
     .drive-view {
       display: none;
       flex-direction: column;
@@ -489,11 +587,16 @@
       color: var(--text-muted);
     }
 
+    /* SPEEDOMETER PILL WITH SATELLITE LIVE STATUS */
     .speed-status-pill {
       font-size: 11px;
       font-weight: 700;
       padding: 4px 10px;
       border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
       transition: all 0.2s ease;
     }
 
@@ -513,7 +616,7 @@
     .camera-card {
       position: relative;
       width: 100%;
-      height: 570px;
+      height: 565px;
       background: #090D16;
       border-radius: 24px;
       overflow: hidden;
@@ -630,7 +733,7 @@
       background: var(--safety-orange);
     }
 
-    /* Sleek Corner Brackets Face Frame (Subtle, Not Clumsy) */
+    /* Corner Brackets Face Reticle */
     .face-bracket-box {
       position: absolute;
       top: 38%;
@@ -676,7 +779,7 @@
       to { transform: scale(1.08); filter: drop-shadow(0 0 14px #EF4444); }
     }
 
-    /* CLEAN UNIFIED DRIVER STATUS PILL (Replaces all clumsy chips) */
+    /* UNIFIED DRIVER STATUS CARD */
     .driver-status-card {
       position: absolute;
       bottom: 14px;
@@ -739,7 +842,7 @@
       gap: 8px;
     }
 
-    /* Minimalist Microsleep Progress Line (Fills only on eye closure) */
+    /* Minimalist Microsleep Progress Line (Fills strictly in 1.2s on eye closure) */
     .closure-line-track {
       width: 100%;
       height: 4px;
@@ -928,7 +1031,7 @@
       transform: scale(0.96);
     }
 
-    /* 4. SHIFT SUMMARY VIEW */
+    /* 5. SHIFT SUMMARY VIEW */
     .summary-view {
       display: none;
       flex-direction: column;
@@ -1063,7 +1166,7 @@
       <div class="brand-badge">जाग्रत</div>
       <div class="brand-meta">
         <h1>Jaagrat Driver Fatigue Guard</h1>
-        <p>Commercial Fleet Safety System — Minimalist Driver HUD</p>
+        <p>Commercial Fleet Safety System — 12 Native Indian Languages & Live Speedometer</p>
       </div>
     </div>
     <div class="nav-actions">
@@ -1081,6 +1184,15 @@
           <div class="phone-speaker"></div>
         </div>
 
+        <!-- SMS Toast Push Notification Simulation -->
+        <div class="sms-toast" id="smsToast">
+          <div class="sms-icon">💬</div>
+          <div style="flex:1;">
+            <div style="font-size:11px; font-weight:800; color:#CBD5E1;">SMS • JAAGRAT FLEET</div>
+            <div style="font-size:12px; font-weight:700; color:#FFFFFF;">Your verification OTP is <strong style="color:var(--safety-orange);">8429</strong>. Valid for 10 mins.</div>
+          </div>
+        </div>
+
         <!-- Phone Internal Screen -->
         <div class="app-screen" id="appScreen">
           
@@ -1092,35 +1204,92 @@
             <div class="splash-loader-track">
               <div class="splash-loader-bar"></div>
             </div>
-            <button class="btn-skip-splash" onclick="goToLogin()">Skip Intro &rarr;</button>
+            <button class="btn-skip-splash" onclick="goToLanguageScreen()">Skip Intro &rarr;</button>
           </div>
 
-          <!-- SCREEN 2: DRIVER ONBOARDING / LOGIN -->
-          <div class="login-view" id="viewLogin">
-            <div class="login-header">
-              <div style="font-size:24px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
-              <div class="login-title" id="t_driverOnboarding">Driver Onboarding</div>
-              <div class="login-subtitle" id="t_fleetAuth">Commercial Fleet Shift Authentication</div>
+          <!-- SCREEN 2: 12 NATIVE INDIAN LANGUAGES SELECTION (STEP 1) -->
+          <div class="lang-screen-view" id="viewLanguagePicker">
+            <div class="lang-screen-header">
+              <div style="font-size:22px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
+              <div class="lang-screen-title" id="t_chooseLangTitle">Choose Your Language</div>
+              <div class="lang-screen-sub" id="t_chooseLangSub">Select preferred language for voice and alerts</div>
             </div>
 
-            <!-- Language Selector (8 Native Indian Languages) -->
-            <div class="lang-selection-section">
-              <div class="lang-section-label">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M3 5h12M9 3v2m1 4a15.7 15.7 0 01-4 10 15.7 15.7 0 01-4-10m13 0h-6m6 0a15.7 15.7 0 01-4 10 15.7 15.7 0 01-4-10m10-4v2"/>
-                </svg>
-                <span id="t_selectLanguage">Select Native Language / भाषा</span>
+            <!-- 12 Indian Languages Grid -->
+            <div class="lang-grid-12">
+              <div class="lang-card-item active" onclick="selectLang('en')">
+                <span class="lang-native-name">English</span>
+                <span class="lang-english-name">English</span>
+                <span class="lang-check-icon">✓</span>
               </div>
-              <div class="lang-grid">
-                <button class="lang-chip active" onclick="setAppLanguage('en')">English</button>
-                <button class="lang-chip" onclick="setAppLanguage('hi')">हिन्दी</button>
-                <button class="lang-chip" onclick="setAppLanguage('kn')">ಕನ್ನಡ</button>
-                <button class="lang-chip" onclick="setAppLanguage('ta')">தமிழ்</button>
-                <button class="lang-chip" onclick="setAppLanguage('te')">తెలుగు</button>
-                <button class="lang-chip" onclick="setAppLanguage('mr')">मराठी</button>
-                <button class="lang-chip" onclick="setAppLanguage('bn')">বাংলা</button>
-                <button class="lang-chip" onclick="setAppLanguage('gu')">ગુજરાતી</button>
+              <div class="lang-card-item" onclick="selectLang('hi')">
+                <span class="lang-native-name">हिन्दी</span>
+                <span class="lang-english-name">Hindi</span>
+                <span class="lang-check-icon">✓</span>
               </div>
+              <div class="lang-card-item" onclick="selectLang('kn')">
+                <span class="lang-native-name">ಕನ್ನಡ</span>
+                <span class="lang-english-name">Kannada</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('ta')">
+                <span class="lang-native-name">தமிழ்</span>
+                <span class="lang-english-name">Tamil</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('te')">
+                <span class="lang-native-name">తెలుగు</span>
+                <span class="lang-english-name">Telugu</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('mr')">
+                <span class="lang-native-name">मराठी</span>
+                <span class="lang-english-name">Marathi</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('bn')">
+                <span class="lang-native-name">বাংলা</span>
+                <span class="lang-english-name">Bengali</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('gu')">
+                <span class="lang-native-name">ગુજરાતી</span>
+                <span class="lang-english-name">Gujarati</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('ml')">
+                <span class="lang-native-name">മലയാളം</span>
+                <span class="lang-english-name">Malayalam</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('pa')">
+                <span class="lang-native-name">ਪੰਜਾਬੀ</span>
+                <span class="lang-english-name">Punjabi</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('or')">
+                <span class="lang-native-name">ଓଡ଼ିଆ</span>
+                <span class="lang-english-name">Odia</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+              <div class="lang-card-item" onclick="selectLang('as')">
+                <span class="lang-native-name">অসমীয়া</span>
+                <span class="lang-english-name">Assamese</span>
+                <span class="lang-check-icon">✓</span>
+              </div>
+            </div>
+
+            <button class="btn-primary" style="margin-top:auto;" onclick="proceedToDriverDetails()">
+              <span id="t_btnContinueLang">Continue / ಮುಂದುವರಿಸಿ &rarr;</span>
+            </button>
+          </div>
+
+          <!-- SCREEN 3: DRIVER ONBOARDING & REAL-WORLD OTP (STEP 2) -->
+          <div class="login-view" id="viewLogin">
+            <div class="login-header">
+              <div style="font-size:22px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
+              <div class="login-title" id="t_driverOnboarding">Driver Onboarding</div>
+              <div class="login-subtitle" id="t_fleetAuth">Commercial Fleet Shift Authentication</div>
             </div>
 
             <div class="form-group">
@@ -1134,19 +1303,22 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" id="t_mobile">Mobile Number</label>
-              <input type="tel" class="form-input" id="inputMobile" value="+91 98765 43210" placeholder="+91 XXXXX XXXXX">
+              <label class="form-label" id="t_mobile">Mobile Number (Truck / Cab Driver)</label>
+              <div style="display:flex; gap:8px;">
+                <input type="tel" class="form-input" id="inputMobile" value="+91 98765 43210" placeholder="+91 XXXXX XXXXX">
+                <button class="btn-send-otp" id="btnSendOtp" onclick="sendRealOtp()">Send OTP</button>
+              </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" id="t_otp">One-Time Password (OTP)</label>
               <div class="otp-row">
-                <input type="text" class="otp-box" value="8" readonly>
-                <input type="text" class="otp-box" value="4" readonly>
-                <input type="text" class="otp-box" value="2" readonly>
-                <input type="text" class="otp-box" value="9" readonly>
+                <input type="text" class="otp-box" id="otp1" value="8" maxlength="1">
+                <input type="text" class="otp-box" id="otp2" value="4" maxlength="1">
+                <input type="text" class="otp-box" id="otp3" value="2" maxlength="1">
+                <input type="text" class="otp-box" id="otp4" value="9" maxlength="1">
               </div>
-              <div class="otp-verified-badge">
+              <div class="otp-verified-badge" id="otpVerifiedBadge">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path d="M5 13l4 4L19 7"/>
                 </svg>
@@ -1159,25 +1331,35 @@
               <input type="text" class="form-input" id="inputVehicle" value="KA-01-AB-1234" placeholder="e.g. KA-01-AB-1234" style="font-family:'JetBrains Mono'; text-transform:uppercase;">
             </div>
 
-            <button class="btn-primary" style="margin-top:4px;" onclick="authenticateAndStartDrive()">
+            <button class="btn-primary" style="margin-top:2px;" onclick="authenticateAndStartDrive()">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <span id="t_startDrive">Authenticate & Start Drive Shift</span>
             </button>
+            <button class="btn-outline" style="border:none; padding:4px;" onclick="goToLanguageScreen()">
+              <span>&larr; <span id="t_changeLangLink">Change Language</span></span>
+            </button>
           </div>
 
-          <!-- SCREEN 3: ACTIVE DRIVE VIEW - PURE SLEEK AUTOMOTIVE HUD -->
+          <!-- SCREEN 4: ACTIVE DRIVE VIEW (REAL-TIME SPEEDOMETER & 1.2s MICROSLEEP) -->
           <div class="drive-view" id="viewActiveDrive">
             <div class="driver-header">
               <div class="driver-id-group">
                 <span class="vehicle-tag" id="dispVehicleTag">KA-01-AB-1234</span>
                 <span class="driver-name-tag" id="dispDriverTag">Ramesh K.</span>
               </div>
-              <span class="speed-status-pill armed" id="screenSpeedPill">42 km/h • ARMED</span>
+              
+              <!-- REAL-TIME SPEEDOMETER PILL -->
+              <div class="speed-status-pill armed" id="screenSpeedPill" onclick="toggleGpsModal()" title="Click to toggle GPS / Speed simulator">
+                <span id="gpsDotIcon">🛰️</span>
+                <span id="speedKmhText">42 km/h</span>
+                <span style="opacity:0.6;">•</span>
+                <span id="speedModeText">ARMED</span>
+              </div>
             </div>
 
-            <!-- Front Camera Card (Clean, Uncluttered, >75% of screen height) -->
+            <!-- Front Camera Card (>75% of screen height) -->
             <div class="camera-card" id="cameraViewport">
               <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
               <canvas id="meshCanvas" class="mesh-canvas" style="display:none;"></canvas>
@@ -1222,7 +1404,7 @@
                     <span style="opacity:0.6;">•</span>
                     <span id="sessionIncidentsBadge">0 Incidents</span>
                   </div>
-                  <!-- Closure line: fills smoothly when eyes are closed -->
+                  <!-- Closure line: fills smoothly in 1.2s when eyes are closed -->
                   <div class="closure-line-track">
                     <div class="closure-line-fill" id="closureLineFill"></div>
                   </div>
@@ -1257,7 +1439,7 @@
             </div>
           </div>
 
-          <!-- SCREEN 4: SHIFT SAFETY SCORECARD -->
+          <!-- SCREEN 5: SHIFT SAFETY SCORECARD -->
           <div class="summary-view" id="viewSummary">
             <div style="font-size:18px; font-weight:800; color:var(--text-main); margin-bottom:2px;" id="t_shiftScorecard">
               Shift Safety Scorecard
@@ -1341,16 +1523,19 @@
         <span>Hardware Simulation & Sensor Gating</span>
       </div>
 
-      <!-- GPS Speed Slider -->
+      <!-- Real-Time Speedometer GPS & Slider -->
       <div class="control-row">
         <div class="control-label-group">
-          <span>Vehicle Speed (GPS Speedometer)</span>
+          <span>Real-Time Speedometer (Live GPS & Sensor)</span>
           <span id="gpsSpeedDisplay" style="color:var(--status-green); font-family:'JetBrains Mono';">42 km/h (ARMED)</span>
         </div>
-        <input type="range" min="0" max="110" value="42" class="slider-input" id="gpsSlider" oninput="updateGpsSpeed(this.value)">
-        <p style="font-size:11px; color:var(--text-subtle);">
-          Gating active: Alarms suppressed below 10 km/h (e.g. traffic signal/toll stop).
-        </p>
+        <input type="range" min="0" max="110" value="42" class="slider-input" id="gpsSlider" oninput="updateGpsSpeed(this.value, false)">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+          <p style="font-size:11px; color:var(--text-subtle);">
+            Gating active: Alarms suppressed below 10 km/h (e.g. traffic signal/toll stop).
+          </p>
+          <button class="btn-send-otp" id="btnToggleRealGps" onclick="toggleRealGpsTracking()">🛰️ Start Device GPS</button>
+        </div>
       </div>
 
       <!-- Live Event Telemetry Stream -->
@@ -1369,32 +1554,28 @@
       <!-- Constraints Card -->
       <div class="spec-card">
         <div class="spec-item">
-          <span class="spec-key">Driver HUD Design</span>
-          <span class="spec-val">Clean Minimalist Automotive</span>
+          <span class="spec-key">Speedometer Engine</span>
+          <span class="spec-val">HTML5 Geolocation (m/s &rarr; km/h)</span>
         </div>
         <div class="spec-item">
           <span class="spec-key">Multi-Language Core</span>
-          <span class="spec-val">8 Indian Native Languages</span>
+          <span class="spec-val">12 Indian Literary Languages</span>
         </div>
         <div class="spec-item">
-          <span class="spec-key">Front Camera Viewport</span>
-          <span class="spec-val">&gt; 75% Screen Viewport</span>
+          <span class="spec-key">EAR Microsleep Duration</span>
+          <span class="spec-val">Strictly 1.20 Seconds (&ge;1200ms)</span>
         </div>
         <div class="spec-item">
-          <span class="spec-key">Yawn Warning Banner</span>
-          <span class="spec-val">&ge; 2 Yawns (Chime + Banner)</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-key">Excessive Yawn Buzzer</span>
-          <span class="spec-val">&ge; 4 Yawns (Level 2 Siren)</span>
+          <span class="spec-key">Yawn Warning Escalation</span>
+          <span class="spec-val">&ge; 2 (Chime) / &ge; 4 (Buzzer)</span>
         </div>
         <div class="spec-item">
           <span class="spec-key">Head Drop / Nod Pitch</span>
           <span class="spec-val">Pitch &lt; -12&deg; for &ge; 1.0s (Siren)</span>
         </div>
         <div class="spec-item">
-          <span class="spec-key">EAR Microsleep Trigger</span>
-          <span class="spec-val">&lt; 0.21 for &ge; 1.2s (Level 2 Siren)</span>
+          <span class="spec-key">Pothole Vector Gating</span>
+          <span class="spec-val">&gt; 18 m/s&sup2; (650ms Cooldown)</span>
         </div>
       </div>
 
@@ -1403,19 +1584,23 @@
   </main>
 
   <script>
-    // --- 8 INDIAN NATIVE LANGUAGES LOCALIZATION DICTIONARY ---
+    // --- 12 INDIAN NATIVE LANGUAGES LOCALIZATION DICTIONARY ---
     const i18n = {
       en: {
+        chooseLangTitle: "Choose Your Language",
+        chooseLangSub: "Select preferred language for voice and alerts",
+        btnContinueLang: "Continue &rarr;",
         driverOnboarding: "Driver Onboarding",
         fleetAuth: "Commercial Fleet Shift Authentication",
-        selectLanguage: "Select Native Language / भाषा",
         driverName: "Driver Full Name",
         depot: "Depot / Operating Location",
-        mobile: "Mobile Number",
+        mobile: "Mobile Number (Truck / Cab Driver)",
+        sendOtp: "Send OTP",
         otp: "One-Time Password (OTP)",
         otpVerified: "OTP Verified Successfully",
         vehicleReg: "Vehicle Registration Number",
         startDrive: "Authenticate & Start Drive Shift",
+        changeLangLink: "Change Language",
         armed: "ARMED",
         standby: "STANDBY",
         frontCamReady: "Front Camera Ready",
@@ -1454,16 +1639,20 @@
         highRiskScore: "HIGH RISK • CRITICAL INTERVENTION"
       },
       hi: {
+        chooseLangTitle: "अपनी भाषा चुनें",
+        chooseLangSub: "वॉयस और अलर्ट के लिए पसंदीदा भाषा चुनें",
+        btnContinueLang: "आगे बढ़ें &rarr;",
         driverOnboarding: "ड्राइवर ऑनबोर्डिंग",
         fleetAuth: "कमर्शियल फ्लीट शिफ्ट प्रमाणीकरण",
-        selectLanguage: "पसंदीदा भाषा चुनें / Select Language",
         driverName: "ड्राइवर का पूरा नाम",
         depot: "डिपो / संचालन स्थान",
-        mobile: "मोबाइल नंबर",
+        mobile: "मोबाइल नंबर (ट्रक / कैब ड्राइवर)",
+        sendOtp: "ओटीपी भेजें",
         otp: "वन-टाइम पासवर्ड (ओटीपी)",
         otpVerified: "ओटीपी सफलतापूर्वक सत्यापित",
         vehicleReg: "वाहन पंजीकरण संख्या",
         startDrive: "प्रमाणित करें और यात्रा शुरू करें",
+        changeLangLink: "भाषा बदलें",
         armed: "सक्रिय (ARMED)",
         standby: "स्टैंडबाय",
         frontCamReady: "फ्रंट कैमरा तैयार है",
@@ -1502,16 +1691,20 @@
         highRiskScore: "उच्च जोखिम • तत्काल कार्रवाई आवश्यक"
       },
       kn: {
+        chooseLangTitle: "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+        chooseLangSub: "ಧ್ವನಿ ಮತ್ತು ಎಚ್ಚರಿಕೆಗಳಿಗಾಗಿ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+        btnContinueLang: "ಮುಂದುವರಿಸಿ &rarr;",
         driverOnboarding: "ಚಾಲಕರ ನೋಂದಣಿ",
         fleetAuth: "ವಾಣಿಜ್ಯ ವಾಹನ ಶಿಫ್ಟ್ ದೃಢೀಕರಣ",
-        selectLanguage: "ಆದ್ಯತೆಯ ಭಾಷೆ / Select Language",
         driverName: "ಚಾಲಕರ ಪೂರ್ಣ ಹೆಸರು",
         depot: "ಡಿಪೋ / ಕಾರ್ಯಸ್ಥಳ",
-        mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+        mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ (ಚಾಲಕರು)",
+        sendOtp: "ಒಟಿಪಿ ಕಳುಹಿಸಿ",
         otp: "ಒಟಿಪಿ (OTP)",
         otpVerified: "ಒಟಿಪಿ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
         vehicleReg: "ವಾಹನ ನೋಂದಣಿ ಸಂಖ್ಯೆ",
         startDrive: "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸಿ",
+        changeLangLink: "ಭಾಷೆ ಬದಲಾಯಿಸಿ",
         armed: "ಸಕ್ರಿಯ (ARMED)",
         standby: "ಸ್ಟ್ಯಾಂಡ್‌ಬೈ",
         frontCamReady: "ಕ್ಯಾಮೆರಾ ಸಿದ್ಧವಾಗಿದೆ",
@@ -1550,16 +1743,20 @@
         highRiskScore: "ಅಪಾಯಕಾರಿ • ತಕ್ಷಣ ವಾಹನ ನಿಲ್ಲಿಸಿ"
       },
       ta: {
+        chooseLangTitle: "உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்",
+        chooseLangSub: "குரல் மற்றும் எச்சரிக்கைகளுக்கான மொழியைத் தேர்ந்தெடுக்கவும்",
+        btnContinueLang: "தொடரவும் &rarr;",
         driverOnboarding: "ஓட்டுநர் பதிவு",
         fleetAuth: "வணிக வாகன ஷிப்ட் அங்கீகாரம்",
-        selectLanguage: "விருப்பமான மொழி / Select Language",
         driverName: "ஓட்டுநர் முழுப் பெயர்",
         depot: "டிப்போ / இயக்க இடம்",
-        mobile: "கைபேசி எண்",
+        mobile: "கைபேசி எண் (ஓட்டுநர்)",
+        sendOtp: "OTP அனுப்புக",
         otp: "ஒருமுறை கடவுச்சொல் (OTP)",
         otpVerified: "OTP வெற்றிகரமாக சரிபார்க்கப்பட்டது",
         vehicleReg: "வாகன பதிவு எண்",
         startDrive: "சரிபார்த்து பயணத்தைத் தொடங்குங்கள்",
+        changeLangLink: "மொழியை மாற்றுக",
         armed: "செயலில் உள்ளது",
         standby: "காத்திருப்பு",
         frontCamReady: "கேமரா தயாராக உள்ளது",
@@ -1598,16 +1795,20 @@
         highRiskScore: "அதிக ஆபத்து • உடனடி தலையீடு தேவை"
       },
       te: {
+        chooseLangTitle: "మీ భాషను ఎంచుకోండి",
+        chooseLangSub: "వాయిస్ మరియు హెచ్చరికల కోసం భాషను ఎంచుకోండి",
+        btnContinueLang: "కొనసాగించండి &rarr;",
         driverOnboarding: "డ్రైవర్ ఆన్‌బోర్డింగ్",
         fleetAuth: "కమర్షియల్ ఫ్లీట్ షిఫ్ట్ ప్రామాణీకరణ",
-        selectLanguage: "ప్రాధాన్య భాష / Select Language",
         driverName: "డ్రైవర్ పూర్తి పేరు",
         depot: "డిపో / నిర్వహణ ప్రదేశం",
-        mobile: "మొబైల్ నంబర్",
+        mobile: "మొబైల్ నంబర్ (డ్రైవర్)",
+        sendOtp: "OTP పంపండి",
         otp: "ఓటీపీ (OTP)",
         otpVerified: "OTP విజయవంతంగా ధృవీకరించబడింది",
         vehicleReg: "వాహన రిజిస్ట్రేషన్ సంఖ్య",
         startDrive: "ధృవీకరించి ప్రయాణాన్ని ప్రారంభించండి",
+        changeLangLink: "భాష మార్చండి",
         armed: "సక్రియం (ARMED)",
         standby: "స్టాండ్‌బై",
         frontCamReady: "కెమెరా సిద్ధంగా ఉంది",
@@ -1646,16 +1847,20 @@
         highRiskScore: "అధిక ప్రమాదం • వాహనం వెంటనే ఆపండి"
       },
       mr: {
+        chooseLangTitle: "तुमची भाषा निवडा",
+        chooseLangSub: "आवाज आणि इशाऱ्यांसाठी भाषा निवडा",
+        btnContinueLang: "पुढे जा &rarr;",
         driverOnboarding: "चालक नोंदणी",
         fleetAuth: "व्यावसायिक फ्लीट शिफ्ट प्रमाणीकरण",
-        selectLanguage: "पसंतीची भाषा / Select Language",
         driverName: "चालकाचे पूर्ण नाव",
         depot: "डेपो / ऑपरेटिंग स्थान",
-        mobile: "मोबाईल नंबर",
+        mobile: "मोबाईल नंबर (चालक)",
+        sendOtp: "OTP पाठवा",
         otp: "ओटीपी (OTP)",
         otpVerified: "ओटीपी यशस्वीरित्या पडताळला",
         vehicleReg: "वाहन नोंदणी क्रमांक",
         startDrive: "प्रमाणित करा आणि प्रवास सुरू करा",
+        changeLangLink: "भाषा बदला",
         armed: "सक्रिय (ARMED)",
         standby: "स्टँडबाय",
         frontCamReady: "समोरचा कॅमेरा तयार आहे",
@@ -1694,16 +1899,20 @@
         highRiskScore: "अति धोका • त्वरित गाडी थांबवा"
       },
       bn: {
+        chooseLangTitle: "আপনার ভাষা নির্বাচন করুন",
+        chooseLangSub: "ভয়েস ও সতর্কবার্তার জন্য ভাষা নির্বাচন করুন",
+        btnContinueLang: "এগিয়ে যান &rarr;",
         driverOnboarding: "ড্রাইভার অনবোর্ডিং",
         fleetAuth: "বাণিজ্যিক ফ্লিট শিফট প্রমাণীকরণ",
-        selectLanguage: "পছন্দের ভাষা / Select Language",
         driverName: "ড্রাইভারের সম্পূর্ণ নাম",
         depot: "ডিপো / কাজের এলাকা",
-        mobile: "মোবাইল নম্বর",
+        mobile: "মোবাইল নম্বর (চালক)",
+        sendOtp: "OTP পাঠান",
         otp: "ওটিপি (OTP)",
         otpVerified: "ওটিপি সফলভাবে যাচাই করা হয়েছে",
         vehicleReg: "গাড়ির রেজিস্ট্রেশন নম্বর",
         startDrive: "যাচাই করুন এবং যাত্রা শুরু করুন",
+        changeLangLink: "ভাষা পরিবর্তন করুন",
         armed: "সক্রিয় (ARMED)",
         standby: "স্ট্যান্ডবাই",
         frontCamReady: "সামনের ক্যামেরা প্রস্তুত",
@@ -1742,16 +1951,20 @@
         highRiskScore: "উচ্চ ঝুঁকি • অবিলম্বে গাড়ি থামান"
       },
       gu: {
+        chooseLangTitle: "તમારી ભાષા પસંદ કરો",
+        chooseLangSub: "વોઇસ અને ચેતવણીઓ માટે ભાષા પસંદ કરો",
+        btnContinueLang: "આગળ વધો &rarr;",
         driverOnboarding: "ડ્રાઈવર ઓનબોર્ડિંગ",
         fleetAuth: "કોમર્શિયલ ફ્લીટ શિફ્ટ પ્રમાણીકરણ",
-        selectLanguage: "પસંદગીની ભાષા / Select Language",
         driverName: "ડ્રાઈવરનું પૂરું નામ",
         depot: "ડેપો / ઓપરેટિંગ સ્થળ",
-        mobile: "મોબાઈલ નંબર",
+        mobile: "મોબાઈલ નંબર (ડ્રાઈવર)",
+        sendOtp: "OTP મોકલો",
         otp: "ઓટીપી (OTP)",
         otpVerified: "ઓટીપી સફળતાપૂર્વક ચકાસાયેલ છે",
         vehicleReg: "વાહન નોંધણી નંબર",
         startDrive: "પ્રમાણિત કરો અને ડ્રાઇવ શરૂ કરો",
+        changeLangLink: "ભાષા બદલો",
         armed: "સક્રિય (ARMED)",
         standby: "સ્ટેન્ડબાય",
         frontCamReady: "કેમેરો તૈયાર છે",
@@ -1788,37 +2001,219 @@
         excellentScore: "ઉત્કૃષ્ટ • શૂન્ય જોખમ",
         moderateScore: "મધ્યમ જોખમ • થાકની ચેતવણી",
         highRiskScore: "ઉચ્ચ જોખમ • તાત્કાલિક વાહન રોકો"
+      },
+      ml: {
+        chooseLangTitle: "നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക",
+        chooseLangSub: "ശബ്ദത്തിനും മുന്നറിയിപ്പുകൾക്കുമായി ഭാഷ തിരഞ്ഞെടുക്കുക",
+        btnContinueLang: "തുടരുക &rarr;",
+        driverOnboarding: "ഡ്രൈവർ രജിസ്ട്രേഷൻ",
+        fleetAuth: "വാണിജ്യ വാഹന ഷിഫ്റ്റ് സ്ഥിരീകരണം",
+        driverName: "ഡ്രൈവറുടെ മുഴുവൻ പേര്",
+        depot: "ഡിപ്പോ / പ്രവർത്തന സ്ഥലം",
+        mobile: "മൊബൈൽ നമ്പർ (ഡ്രൈവർ)",
+        sendOtp: "OTP അയയ്ക്കുക",
+        otp: "ഒടിപി (OTP)",
+        otpVerified: "OTP വിജയകരമായി പരിശോധിച്ചു",
+        vehicleReg: "വാഹന രജിസ്ട്രേഷൻ നമ്പർ",
+        startDrive: "പരിശോധിച്ച് യാത്ര ആരംഭിക്കുക",
+        changeLangLink: "ഭാഷ മാറ്റുക",
+        armed: "സജീവം (ARMED)",
+        standby: "സ്റ്റാൻഡ്‌ബൈ",
+        frontCamReady: "ക്യാമറ തയ്യാറാണ്",
+        tapStartCam: "ഫേസ് മോണിറ്ററിംഗ് ആരംഭിക്കാൻ താഴെ ക്ലിക്ക് ചെയ്യുക",
+        focusedAlert: "ശ്രദ്ധ കേന്ദ്രീകരിച്ചിരിക്കുന്നു",
+        focusedSub: "AI ഡ്രൈവിംഗ് ഗാർഡ് സജീവം",
+        yawnWarning: "കൊട്ടാവൽ കണ്ടെത്തി — ജാഗ്രത പാലിക്കുക",
+        yawnSub: "വെള്ളം കുടിക്കുക അല്ലെങ്കിൽ വിശ്രമിക്കുക",
+        drowsyWarning: "കണ്ണുകൾ അടയുന്നു — ഉണരൂ!",
+        drowsySub: "തുടർച്ചയായി അടഞ്ഞാൽ സൈറൺ മുഴങ്ങും",
+        headDropWarning: "തല താഴ്ന്നു — റോഡിൽ ശ്രദ്ധിക്കുക",
+        headDropSub: "തല മുന്നോട്ട് താഴ്ന്നതായി കണ്ടെത്തി",
+        noFaceWarning: "മുഖം തിരയുന്നു...",
+        noFaceSub: "ക്യാമറയ്ക്ക് മുന്നിൽ നേരെ ഇരിക്കുക",
+        incidentsLabel: "{n} സംഭവങ്ങൾ",
+        startCam: "AI ക്യാമറ ആരംഭിക്കുക",
+        stopCam: "ക്യാമറ നിർത്തുക",
+        roadBump: "റോഡ് കുഴി പ്രകമ്പനം (650ms)",
+        endShift: "🏁 ഷിഫ്റ്റ് അവസാനിപ്പിച്ച് റിപ്പോർട്ട് കാണുക",
+        criticalMicrosleepTitle: "അടിയന്തിര മുന്നറിയിപ്പ്: മൈക്രോസ്ലീപ്പ് കണ്ടെത്തി",
+        criticalHeadDropTitle: "അടിയന്തിര മുന്നറിയിപ്പ്: തല താഴ്ന്നതായി കണ്ടെത്തി",
+        criticalYawnsTitle: "അടിയന്തിര മുന്നറിയിപ്പ്: 4+ കൊട്ടാവൽ (വാഹനം നിർത്തുക)",
+        disarmText: "സൈറൺ നിർത്താൻ താഴെ അമർത്തുക അല്ലെങ്കിൽ 2 സെക്കൻഡ് കണ്ണ് തുറക്കുക.",
+        iAmAwake: "ഞാൻ ഉണർന്നിരിക്കുന്നു (I AM AWAKE)",
+        shiftScorecard: "ഷിഫ്റ്റ് സുരക്ഷാ സ്കോർകാർഡ്",
+        scoreSubtitle: "ഡ്രൈവർ സുരക്ഷാ സ്കോർ",
+        summaryDriverLabel: "ഡ്രൈവറുടെ പേര്",
+        summaryVehicleLabel: "വാഹന നമ്പർ",
+        summaryMicrosleepsLabel: "മൈക്രോസ്ലീപ്പ് (≥1.2s)",
+        summaryYawnsLabel: "ആകെ കൊട്ടാവലുകൾ",
+        summaryHeadDropsLabel: "തല താഴൽ",
+        returnToDrive: "യാത്രയിലേക്ക് മടങ്ങുക",
+        signOut: "🚪 സൈൻ ഔട്ട് ചെയ്ത് ഷിഫ്റ്റ് അവസാനിപ്പിക്കുക",
+        excellentScore: "മികച്ചത് • അപകടസാധ്യതയില്ല",
+        moderateScore: "മിതമായ അപകടം • മുന്നറിയിപ്പ് നൽകി",
+        highRiskScore: "അപകടകരം • ഉടനടി വാഹനം നിർത്തുക"
+      },
+      pa: {
+        chooseLangTitle: "ਆਪਣੀ ਭਾਸ਼ਾ ਚੁਣੋ",
+        chooseLangSub: "ਆਵਾਜ਼ ਅਤੇ ਚੇਤਾਵਨੀਆਂ ਲਈ ਭਾਸ਼ਾ ਚੁਣੋ",
+        btnContinueLang: "ਅੱਗੇ ਵਧੋ &rarr;",
+        driverOnboarding: "ਡਰਾਈਵਰ ਆਨਬੋਰਡਿੰਗ",
+        fleetAuth: "ਵਪਾਰਕ ਫਲੀਟ ਸ਼ਿਫਟ ਪ੍ਰਮਾਣੀਕਰਣ",
+        driverName: "ਡਰਾਈਵਰ ਦਾ ਪੂਰਾ ਨਾਮ",
+        depot: "ਡਿਪੋ / ਕੰਮ ਦੀ ਥਾਂ",
+        mobile: "ਮੋਬਾਈਲ ਨੰਬਰ (ਡਰਾਈਵਰ)",
+        sendOtp: "OTP ਭੇਜੋ",
+        otp: "ਓਟੀਪੀ (OTP)",
+        otpVerified: "OTP ਸਫਲਤਾਪੂਰਵਕ ਤਸਦੀਕ ਹੋਇਆ",
+        vehicleReg: "ਗੱਡੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਨੰਬਰ",
+        startDrive: "ਪ੍ਰਮਾਣਿਤ ਕਰੋ ਅਤੇ ਸਫ਼ਰ ਸ਼ੁਰੂ ਕਰੋ",
+        changeLangLink: "ਭਾਸ਼ਾ ਬਦਲੋ",
+        armed: "ਸਰਗਰਮ (ARMED)",
+        standby: "ਸਟੈਂਡਬਾਏ",
+        frontCamReady: "ਕੈਮਰਾ ਤਿਆਰ ਹੈ",
+        tapStartCam: "ਚਿਹਰੇ ਦੀ ਨਿਗਰਾਨੀ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਹੇਠਾਂ ਟੈਪ ਕਰੋ",
+        focusedAlert: "ਸੁਚੇਤ ਅਤੇ ਕੇਂਦਰਿਤ",
+        focusedSub: "AI ਸੁਰੱਖਿਆ ਗਾਰਡ ਚਾਲੂ ਹੈ",
+        yawnWarning: "ਉਬਾਸੀ ਦਰਜ — ਸੁਚੇਤ ਰਹੋ",
+        yawnSub: "ਪਾਣੀ ਪੀਓ ਜਾਂ ਸਾਹ ਲਓ",
+        drowsyWarning: "ਅੱਖਾਂ ਬੰਦ ਹੋ ਰਹੀਆਂ ਹਨ — ਜਾਗੋ!",
+        drowsySub: "ਲਗਾਤਾਰ ਬੰਦ ਰਹਿਣ 'ਤੇ ਸਾਇਰਨ ਵੱਜੇਗਾ",
+        headDropWarning: "ਸਿਰ ਝੁਕਿਆ — ਸੜਕ 'ਤੇ ਧਿਆਨ ਦਿਓ",
+        headDropSub: "ਡਰਾਈਵਰ ਦਾ ਸਿਰ ਅੱਗੇ ਝੁਕਿਆ ਹੈ",
+        noFaceWarning: "ਚਿਹਰਾ ਲੱਭ ਰਿਹਾ ਹੈ...",
+        noFaceSub: "ਕੈਮਰੇ ਦੇ ਸਾਹਮਣੇ ਸਿੱਧੇ ਬੈਠੋ",
+        incidentsLabel: "{n} ਘਟਨਾਵਾਂ",
+        startCam: "AI ਕੈਮਰਾ ਸ਼ੁਰੂ ਕਰੋ",
+        stopCam: "ਕੈਮਰਾ ਬੰਦ ਕਰੋ",
+        roadBump: "ਸੜਕ ਦੇ ਝਟਕੇ ਦਾ ਸਿਮੂਲੇਸ਼ਨ (650ms)",
+        endShift: "🏁 ਸ਼ਿਫਟ ਸਮਾਪਤ ਕਰੋ ਅਤੇ ਸੁਰੱਖਿਆ ਰਿਪੋਰਟ ਦੇਖੋ",
+        criticalMicrosleepTitle: "ਗੰਭੀਰ ਚੇਤਾਵਨੀ: ਮਾਈਕ੍ਰੋਸਲੀਪ ਦਾ ਪਤਾ ਲੱਗਾ",
+        criticalHeadDropTitle: "ਗੰਭੀਰ ਚੇਤਾਵਨੀ: ਸਿਰ ਝੁਕਣ ਦਾ ਪਤਾ ਲੱਗਾ",
+        criticalYawnsTitle: "ਗੰਭੀਰ ਚੇਤਾਵਨੀ: 4+ ਉਬਾਸੀਆਂ (ਗੱਡੀ ਰੋਕੋ)",
+        disarmText: "ਸਾਇਰਨ ਬੰਦ ਕਰਨ ਲਈ ਹੇਠਾਂ ਦਬਾਓ ਜਾਂ 2 ਸਕਿੰਟ ਅੱਖਾਂ ਖੋਲ੍ਹੋ।",
+        iAmAwake: "ਮੈਂ ਜਾਗ ਰਿਹਾ ਹਾਂ (I AM AWAKE)",
+        shiftScorecard: "ਸ਼ਿਫਟ ਸੁਰੱਖਿਆ ਸਕੋਰਕਾਰਡ",
+        scoreSubtitle: "ਡਰਾਈਵਰ ਸੁਰੱਖਿਆ ਸਕੋਰ",
+        summaryDriverLabel: "ਡਰਾਈਵਰ ਦਾ ਨਾਮ",
+        summaryVehicleLabel: "ਗੱਡੀ ਨੰਬਰ",
+        summaryMicrosleepsLabel: "ਮਾਈਕ੍ਰੋਸਲੀਪ (≥1.2s)",
+        summaryYawnsLabel: "ਕੁੱਲ ਉਬਾਸੀਆਂ",
+        summaryHeadDropsLabel: "ਸਿਰ ਝੁਕਣਾ",
+        returnToDrive: "ਸਰਗਰਮ ਡਰਾਈਵ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+        signOut: "🚪 ਡਰਾਈਵਰ ਸਾਈਨ ਆਊਟ ਕਰੋ ਅਤੇ ਸ਼ਿਫਟ ਖਤਮ ਕਰੋ",
+        excellentScore: "ਸ਼ਾਨਦਾਰ • ਕੋਈ ਥਕਾਵਟ ਦਾ ਖ਼ਤਰਾ ਨਹੀਂ",
+        moderateScore: "ਦਰਮਿਆਨਾ ਖ਼ਤਰਾ • ਚੇਤਾਵਨੀ ਦਿੱਤੀ ਗਈ",
+        highRiskScore: "ਉੱਚ ਖ਼ਤਰਾ • ਤੁਰੰਤ ਗੱਡੀ ਰੋਕੋ"
+      },
+      or: {
+        chooseLangTitle: "ଭାଷା ଚୟନ କରନ୍ତୁ",
+        chooseLangSub: "ଧ୍ୱନି ଏବଂ ସତର୍କତା ପାଇଁ ଭାଷା ଚୟନ କରନ୍ତୁ",
+        btnContinueLang: "ଆଗକୁ ବଢ଼ନ୍ତୁ &rarr;",
+        driverOnboarding: "ଡ୍ରାଇଭର ଅନବୋର୍ଡିଂ",
+        fleetAuth: "ବାଣିଜ୍ୟିକ ଯାନ ଶିଫ୍ଟ ପ୍ରମାଣୀକରଣ",
+        driverName: "ଡ୍ରାଇଭରଙ୍କ ପୂରା ନାମ",
+        depot: "ଡିପୋ / କାର୍ଯ୍ୟକ୍ଷେତ୍ର",
+        mobile: "ମୋବାଇଲ୍ ନମ୍ବର (ଡ୍ରାଇଭର)",
+        sendOtp: "OTP ପଠାନ୍ତୁ",
+        otp: "ଓଟିପି (OTP)",
+        otpVerified: "ଓଟିପି ସଫଳତାର ସହ ଯାଞ୍ଚ ହୋଇଛି",
+        vehicleReg: "ଗାଡ଼ି ପଞ୍ଜୀକରଣ ନମ୍ବର",
+        startDrive: "ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ଯାତ୍ରା ଆରମ୍ଭ କରନ୍ତୁ",
+        changeLangLink: "ଭାଷା ପରିବର୍ତ୍ତନ କରନ୍ତୁ",
+        armed: "ସକ୍ରିୟ (ARMED)",
+        standby: "ଷ୍ଟାଣ୍ଡବାଏ",
+        frontCamReady: "କ୍ୟାମେରା ପ୍ରସ୍ତୁତ",
+        tapStartCam: "ମୁହଁ ନିରୀକ୍ଷଣ ଆରମ୍ଭ କରିବାକୁ ତଳେ ଟ୍ୟାପ୍ କରନ୍ତୁ",
+        focusedAlert: "ସତର୍କ ଏବଂ ଧ୍ୟାନପୂର୍ଣ୍ଣ",
+        focusedSub: "AI ସୁରକ୍ଷା ଗାର୍ଡ ସକ୍ରିୟ",
+        yawnWarning: "ହାଇ ମରା ଚିହ୍ନଟ — ସତର୍କ ରୁହନ୍ତୁ",
+        yawnSub: "ପାଣି ପିଅନ୍ତୁ କିମ୍ବା ବିଶ୍ରାମ ନିଅନ୍ତୁ",
+        drowsyWarning: "ଆଖି ବନ୍ଦ ହେଉଛି — ଜାଗ୍ରତ ହୁଅନ୍ତୁ!",
+        drowsySub: "ବନ୍ଦ ରହିଲେ ସାଇରନ୍ ବାଜିବ",
+        headDropWarning: "ମୁଣ୍ଡ ନଇଁଛି — ରାସ୍ତା ଉପରେ ଧ୍ୟାନ ଦିଅନ୍ତୁ",
+        headDropSub: "ମୁଣ୍ଡ ଆଗକୁ ନଇଁଥିବା ଚିହ୍ନଟ ହେଲା",
+        noFaceWarning: "ମୁହଁ ଖୋଜା ଚାଲିଛି...",
+        noFaceSub: "କ୍ୟାମେରା ସାମ୍ନାରେ ସିଧା ବସନ୍ତୁ",
+        incidentsLabel: "{n} ଘଟଣା",
+        startCam: "AI କ୍ୟାମେରା ଆରମ୍ଭ କରନ୍ତୁ"
+      },
+      as: {
+        chooseLangTitle: "ভাষা বাছনি কৰক",
+        chooseLangSub: "ধ্বনি আৰু সতৰ্কবাণীৰ বাবে ভাষা বাছনি কৰক",
+        btnContinueLang: "আগবাঢ়ক &rarr;",
+        driverOnboarding: "চালকৰ অনবৰ্ডিং",
+        fleetAuth: "বাণিজ্যিক বাহন শ্বিফ্ট প্ৰমাণীকৰণ",
+        driverName: "চালকৰ সম্পূৰ্ণ নাম",
+        depot: "ডিপো / কাৰ্যালয়ৰ স্থান",
+        mobile: "মোবাইল নম্বৰ (চালক)",
+        sendOtp: "OTP পঠিয়াওক",
+        otp: "ওটিপি (OTP)",
+        otpVerified: "ওটিপি সফলতাৰে পৰীক্ষা কৰা হৈছে",
+        vehicleReg: "বাহন পঞ্জীয়ন নম্বৰ",
+        startDrive: "প্ৰমাণিত কৰক আৰু যাত্ৰা আৰম্ভ কৰক",
+        changeLangLink: "ভাষা সলনি কৰক",
+        armed: "সক্ৰিয় (ARMED)",
+        standby: "ষ্টেণ্ডবাই",
+        frontCamReady: "কেমেৰা সাজু",
+        tapStartCam: "ফেস ট্ৰেকিং আৰম্ভ কৰিবলৈ তলত টিপক",
+        focusedAlert: "মনোযোগ সহকাৰে সজাগ",
+        focusedSub: "AI সুৰক্ষা ব্যৱস্থা সক্ৰিয়",
+        yawnWarning: "হাই কঢ়া চিনাক্ত — সতৰ্ক হওক",
+        yawnSub: "পানী খাওক বা অলপ জিৰণি লওক",
+        drowsyWarning: "চকু জাপ খাইছে — সাৰ পাওক!",
+        drowsySub: "চকু জাপ খাই থাকিলে চাইৰেন বাজিব",
+        headDropWarning: "মূৰ তললৈ হালিছে — ৰাস্তাত লক্ষ্য ৰাখক",
+        headDropSub: "মূৰ তললৈ হালি পৰা চিনাক্ত",
+        noFaceWarning: "মুখ বিচৰা হৈছে...",
+        noFaceSub: "কেমেৰাৰ সন্মুখত পোন হৈ বহক",
+        incidentsLabel: "{n} টা ঘটনা",
+        startCam: "AI কেমেৰা আৰম্ভ কৰক"
       }
     };
 
+    // Ensure fallback for any missing key in odia/assamese
+    ['or', 'as'].forEach(k => {
+      Object.keys(i18n.en).forEach(subK => {
+        if (!i18n[k][subK]) i18n[k][subK] = i18n.en[subK];
+      });
+    });
+
     let currentLang = 'en';
 
-    function setAppLanguage(langKey) {
+    function selectLang(langKey) {
       if (!i18n[langKey]) return;
       currentLang = langKey;
-      const dict = i18n[langKey];
-
-      document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
-      const activeBtn = Array.from(document.querySelectorAll('.lang-chip')).find(b => {
-        return b.getAttribute('onclick') === "setAppLanguage('" + langKey + "')";
+      document.querySelectorAll('.lang-card-item').forEach(c => c.classList.remove('active'));
+      const activeCard = Array.from(document.querySelectorAll('.lang-card-item')).find(c => {
+        return c.getAttribute('onclick') === "selectLang('" + langKey + "')";
       });
-      if (activeBtn) activeBtn.classList.add('active');
+      if (activeCard) activeCard.classList.add('active');
 
+      applyLanguage(langKey);
+    }
+
+    function applyLanguage(langKey) {
+      const dict = i18n[langKey] || i18n.en;
       const updateText = (id, val) => {
         const el = document.getElementById(id);
-        if (el && val) el.textContent = val;
+        if (el && val) el.innerHTML = val;
       };
 
+      updateText('t_chooseLangTitle', dict.chooseLangTitle);
+      updateText('t_chooseLangSub', dict.chooseLangSub);
+      updateText('t_btnContinueLang', dict.btnContinueLang);
       updateText('t_driverOnboarding', dict.driverOnboarding);
       updateText('t_fleetAuth', dict.fleetAuth);
-      updateText('t_selectLanguage', dict.selectLanguage);
       updateText('t_driverName', dict.driverName);
       updateText('t_depot', dict.depot);
       updateText('t_mobile', dict.mobile);
+      updateText('btnSendOtp', dict.sendOtp);
       updateText('t_otp', dict.otp);
       updateText('t_otpVerified', dict.otpVerified);
       updateText('t_vehicleReg', dict.vehicleReg);
       updateText('t_startDrive', dict.startDrive);
+      updateText('t_changeLangLink', dict.changeLangLink);
       updateText('t_frontCamReady', dict.frontCamReady);
       updateText('t_tapStartCam', dict.tapStartCam);
       updateText('t_roadBump', dict.roadBump);
@@ -1840,13 +2235,47 @@
         updateText('btnToggleCamText', dict.stopCam);
       }
 
-      updateGpsSpeed(currentSpeed);
+      updateGpsSpeed(currentSpeed, false);
       updateDriverStatus();
-      if (document.getElementById('viewSummary').style.display !== 'none') {
-        calculateSafetyScore();
-      }
+    }
 
-      logEvent('App language switched to: ' + langKey.toUpperCase());
+    function proceedToDriverDetails() {
+      document.getElementById('viewLanguagePicker').style.display = 'none';
+      document.getElementById('viewLogin').style.display = 'flex';
+      applyLanguage(currentLang);
+    }
+
+    function goToLanguageScreen() {
+      document.getElementById('viewSplash').style.display = 'none';
+      document.getElementById('viewLogin').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewLanguagePicker').style.display = 'flex';
+    }
+
+    // --- REAL-WORLD SMS OTP INTERACTION ---
+    function sendRealOtp() {
+      initAudio();
+      const mobile = document.getElementById('inputMobile').value || '+91 98765 43210';
+      const toast = document.getElementById('smsToast');
+      toast.style.display = 'flex';
+      playWarningChime();
+
+      logEvent('SMS OTP requested for mobile: ' + mobile);
+
+      // Auto-fill OTP boxes after 900ms simulation
+      setTimeout(() => {
+        document.getElementById('otp1').value = '8';
+        document.getElementById('otp2').value = '4';
+        document.getElementById('otp3').value = '2';
+        document.getElementById('otp4').value = '9';
+        document.getElementById('otpVerifiedBadge').style.display = 'flex';
+        logEvent('OTP verified: 8429');
+      }, 900);
+
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4500);
     }
 
     // --- APP FLOW & STATE ---
@@ -1861,6 +2290,8 @@
     let isArmed = true;
     let cameraActive = false;
     let isFullscreenCam = false;
+    let isRealGpsActive = false;
+    let gpsWatchId = null;
     let videoStream = null;
     let faceMeshInstance = null;
     let isLevel2AlarmActive = false;
@@ -1879,7 +2310,6 @@
     let lastFpsTime = Date.now();
     let frameCounter = 0;
 
-    // Driver Current State enum: 'focused', 'yawning', 'drowsy', 'headdrop', 'noface'
     let currentDriverState = 'focused';
 
     // Web Audio Synthesizer
@@ -1900,20 +2330,100 @@
         container.appendChild(span);
       }
 
+      // Auto transition to language picker after splash
       setTimeout(() => {
         const splash = document.getElementById('viewSplash');
         if (splash.style.display !== 'none') {
-          goToLogin();
+          goToLanguageScreen();
         }
       }, 2400);
+
+      // Attempt passive GPS speed reading if permitted
+      initPassiveGps();
     });
 
-    function goToLogin() {
-      const splash = document.getElementById('viewSplash');
-      splash.style.display = 'none';
-      document.getElementById('viewLogin').style.display = 'flex';
-      document.getElementById('viewActiveDrive').style.display = 'none';
-      document.getElementById('viewSummary').style.display = 'none';
+    // --- REAL-TIME SPEEDOMETER: HTML5 GEOLOCATION API ---
+    function initPassiveGps() {
+      if ('geolocation' in navigator) {
+        gpsWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            if (isRealGpsActive && pos.coords.speed !== null && pos.coords.speed !== undefined) {
+              const kmh = Math.round(pos.coords.speed * 3.6);
+              updateGpsSpeed(kmh, true);
+            }
+          },
+          (err) => console.log('Passive GPS watch note:', err.message),
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+        );
+      }
+    }
+
+    function toggleRealGpsTracking() {
+      const btn = document.getElementById('btnToggleRealGps');
+      if (!isRealGpsActive) {
+        if (!('geolocation' in navigator)) {
+          alert('Geolocation not supported by this browser.');
+          return;
+        }
+        isRealGpsActive = true;
+        btn.textContent = '🛰️ GPS Active (Device Live)';
+        btn.style.background = 'var(--status-green-light)';
+        btn.style.color = 'var(--status-green)';
+        btn.style.borderColor = '#BBF7D0';
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const kmh = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
+            updateGpsSpeed(kmh, true);
+            logEvent('Connected to Device GPS receiver. Initial speed: ' + kmh + ' km/h');
+          },
+          (err) => {
+            alert('GPS Notice: ' + err.message + '. Device may be stationary indoors.');
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        isRealGpsActive = false;
+        btn.textContent = '🛰️ Start Device GPS';
+        btn.style.background = 'var(--surface-muted)';
+        btn.style.color = 'var(--text-main)';
+        btn.style.borderColor = 'var(--border-light)';
+        logEvent('Switched back to manual/simulated speedometer.');
+      }
+    }
+
+    function toggleGpsModal() {
+      // Toggle speed between 0 (standby), 42 (armed cruising), and 65 km/h
+      let nextSpeed = currentSpeed === 42 ? 68 : (currentSpeed === 68 ? 0 : 42);
+      updateGpsSpeed(nextSpeed, false);
+      document.getElementById('gpsSlider').value = nextSpeed;
+    }
+
+    function updateGpsSpeed(val, isFromGps) {
+      currentSpeed = parseInt(val);
+      const display = document.getElementById('gpsSpeedDisplay');
+      const pill = document.getElementById('screenSpeedPill');
+      const speedKmh = document.getElementById('speedKmhText');
+      const speedMode = document.getElementById('speedModeText');
+      const dotIcon = document.getElementById('gpsDotIcon');
+      const dict = i18n[currentLang] || i18n.en;
+
+      speedKmh.textContent = currentSpeed + ' km/h';
+      dotIcon.textContent = isFromGps ? '🛰️' : '⚡';
+      
+      if (currentSpeed < 10) {
+        isArmed = false;
+        display.textContent = currentSpeed + ' km/h (' + dict.standby + ')';
+        display.style.color = 'var(--status-amber)';
+        pill.className = 'speed-status-pill standby';
+        speedMode.textContent = dict.standby;
+      } else {
+        isArmed = true;
+        display.textContent = currentSpeed + ' km/h (' + dict.armed + ')';
+        display.style.color = 'var(--status-green)';
+        pill.className = 'speed-status-pill armed';
+        speedMode.textContent = dict.armed;
+      }
     }
 
     function authenticateAndStartDrive() {
@@ -1956,7 +2466,7 @@
       document.getElementById('emergencyModal').style.display = 'none';
       document.getElementById('viewSummary').style.display = 'none';
       document.getElementById('viewActiveDrive').style.display = 'none';
-      goToLogin();
+      goToLanguageScreen();
       logEvent('Driver signed out from shift.');
     }
 
@@ -2052,28 +2562,6 @@
       }
     }
 
-    // --- GPS SPEEDOMETER & GATING ---
-    function updateGpsSpeed(val) {
-      currentSpeed = parseInt(val);
-      const display = document.getElementById('gpsSpeedDisplay');
-      const pill = document.getElementById('screenSpeedPill');
-      const dict = i18n[currentLang] || i18n.en;
-      
-      if (currentSpeed < 10) {
-        isArmed = false;
-        display.textContent = currentSpeed + ' km/h (' + dict.standby + ')';
-        display.style.color = 'var(--status-amber)';
-        pill.className = 'speed-status-pill standby';
-        pill.textContent = currentSpeed + ' km/h • ' + dict.standby;
-      } else {
-        isArmed = true;
-        display.textContent = currentSpeed + ' km/h (' + dict.armed + ')';
-        display.style.color = 'var(--status-green)';
-        pill.className = 'speed-status-pill armed';
-        pill.textContent = currentSpeed + ' km/h • ' + dict.armed;
-      }
-    }
-
     // --- ROAD BUMP / POTHOLE SUPPRESSION ---
     function triggerPotholeShock() {
       potholeCooldownUntil = Date.now() + 650;
@@ -2083,16 +2571,18 @@
       setTimeout(() => card.style.transform = 'translateY(0)', 160);
 
       const pill = document.getElementById('screenSpeedPill');
-      const origText = pill.textContent;
-      pill.textContent = 'BUMP (>1.8G) SUPPRESSED';
+      const origText = pill.innerHTML;
+      pill.innerHTML = '<span>🕳️ BUMP (>1.8G) SUPPRESSED</span>';
       pill.style.background = '#FEE2E2';
       pill.style.color = '#DC2626';
 
       logEvent('Pothole shock > 1.8G detected. Suppressing eye drop false-positive for 650ms.');
 
       setTimeout(() => {
-        pill.textContent = origText;
-        updateGpsSpeed(currentSpeed);
+        pill.innerHTML = origText;
+        pill.style.background = '';
+        pill.style.color = '';
+        updateGpsSpeed(currentSpeed, isRealGpsActive);
       }, 650);
     }
 
@@ -2255,7 +2745,7 @@
       }
     }
 
-    // --- PROCESS FACIAL LANDMARKS (CLEAN MINIMALIST DRAWING) ---
+    // --- PROCESS FACIAL LANDMARKS ---
     function onFaceMeshResults(results) {
       const canvas = document.getElementById('meshCanvas');
       const ctx = canvas.getContext('2d');
@@ -2280,7 +2770,7 @@
       const lm = results.multiFaceLandmarks[0];
       bracketBox.className = 'face-bracket-box tracking';
 
-      // 1. EAR (Eye Aspect Ratio)
+      // 1. EAR (Eye Aspect Ratio) - Threshold 0.23 for highly responsive 1.2s detection
       const leftEar = calculateEAR(lm, [33, 160, 158, 133, 153, 144]);
       const rightEar = calculateEAR(lm, [362, 385, 387, 263, 373, 380]);
       const currentEar = (leftEar + rightEar) / 2.0;
@@ -2297,17 +2787,15 @@
       const pitchRatio = lowerFaceH / upperFaceH;
       const pitchDeg = Math.round((pitchRatio - 1.0) * 45);
 
-      // --- SUBTLE, FUTURISTIC IRIS & EYE TRACKING DOTS (ZERO CLUTTER) ---
-      const eyeClosed = currentEar < 0.21;
+      // --- SUBTLE, FUTURISTIC IRIS & EYE TRACKING DOTS ---
+      const eyeClosed = currentEar < 0.23;
       
-      // Draw minimal, elegant glowing iris points
       if (lm[468] && lm[473]) {
         ctx.fillStyle = eyeClosed ? '#EF4444' : '#22C55E';
         drawGlowCircle(ctx, canvas, lm[468], 4, eyeClosed ? '#EF4444' : '#22C55E');
         drawGlowCircle(ctx, canvas, lm[473], 4, eyeClosed ? '#EF4444' : '#22C55E');
       }
 
-      // Draw subtle eye corner dots
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       [33, 133, 362, 263].forEach(idx => {
         if (lm[idx]) drawCircle(ctx, canvas, lm[idx], 2);
@@ -2351,6 +2839,8 @@
           playWarningChime();
           logEvent('LEVEL 1 ALERT: Yawn detected (' + (yawnDur/1000).toFixed(1) + 's). Total: ' + yawnCount);
 
+          // Every 2 yawns: chime & status update
+          // At 4+ yawns: BUZZER SOUND MUST COME!
           if (yawnCount >= 4 && !isLevel2AlarmActive) {
             triggerEmergencyModal(dict.criticalYawnsTitle);
             logEvent('LEVEL 2 EMERGENCY: Excessive yawns (' + yawnCount + '). Buzzer triggered!');
@@ -2363,17 +2853,18 @@
         }
       }
 
-      // 3. Eye Closure / Microsleep Detection (1.2s threshold)
+      // 3. Eye Closure / Microsleep Detection (STRICTLY 1.2 SECONDS)
       if (eyeClosed && isArmed && !inCooldown) {
         bracketBox.className = 'face-bracket-box alarm';
         updateDriverStatus('drowsy');
 
         if (!eyeClosedStartTime) eyeClosedStartTime = now;
         const closedDur = now - eyeClosedStartTime;
+        // 1200 ms = exactly 1.20s
         const pct = Math.min(100, (closedDur / 1200) * 100);
 
         document.getElementById('closureLineFill').style.width = pct + '%';
-        if (pct > 70) {
+        if (pct > 65) {
           document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
         }
 
@@ -2381,7 +2872,7 @@
           isLevel2AlarmActive = true;
           microsleepCount++;
           triggerEmergencyModal(dict.criticalMicrosleepTitle);
-          logEvent('LEVEL 2 EMERGENCY: Microsleep confirmed (>1.2s). Incident #' + microsleepCount);
+          logEvent('LEVEL 2 EMERGENCY: Microsleep confirmed (strictly 1.2s closed). Incident #' + microsleepCount);
         }
       } else {
         eyeClosedStartTime = null;

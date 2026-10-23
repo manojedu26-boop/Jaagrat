@@ -1,0 +1,2506 @@
+const fs = require('fs');
+const path = require('path');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jaagrat (जाग्रत) — Commercial Driver Fatigue Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+Kannada:wght@500;700;800&family=Noto+Sans+Tamil:wght@500;700;800&family=Noto+Sans+Telugu:wght@500;700;800&family=Noto+Sans+Devanagari:wght@500;700;800&family=Noto+Sans+Bengali:wght@500;700;800&family=Noto+Sans+Gujarati:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <!-- Google MediaPipe Face Mesh & Camera Utils CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #F8FAFC;
+      --bg-white: #FFFFFF;
+      --surface-card: #FFFFFF;
+      --surface-muted: #F1F5F9;
+      --border-light: #E2E8F0;
+      --border-focus: #CBD5E1;
+      
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-subtle: #94A3B8;
+      
+      --safety-orange: #EA580C;
+      --safety-orange-hover: #C2410C;
+      --safety-orange-light: #FFF7ED;
+      
+      --alert-red: #DC2626;
+      --alert-red-dark: #991B1B;
+      --alert-red-light: #FEF2F2;
+      --alert-red-border: #FCA5A5;
+      
+      --status-green: #16A34A;
+      --status-green-light: #F0FDF4;
+      --status-amber: #D97706;
+      --status-amber-light: #FEF3C7;
+      
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Kannada', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali', 'Noto Sans Gujarati', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      width: 100%;
+      max-width: 1140px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: var(--safety-orange);
+      color: white;
+      font-weight: 900;
+      font-size: 18px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-meta h1 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-meta p {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--status-green-light);
+      color: var(--status-green);
+      border: 1px solid #BBF7D0;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-pill::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--status-green);
+      border-radius: 50%;
+      animation: blink-dot 1.5s infinite;
+    }
+
+    /* Main Showcase Layout */
+    .showcase-container {
+      width: 100%;
+      max-width: 1140px;
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .showcase-container {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    /* Mobile Phone Shell */
+    .phone-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 390px;
+    }
+
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      height: 830px;
+      background: #FFFFFF;
+      border: 10px solid #0F172A;
+      border-radius: 46px;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Notch & Speaker */
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 22px;
+      background: #0F172A;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone-speaker {
+      width: 40px;
+      height: 4px;
+      background: #334155;
+      border-radius: 2px;
+    }
+
+    /* Mobile App Internal Screen */
+    .app-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 16px 16px 16px;
+      background: #FFFFFF;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* 1. SPLASH SCREEN (LETTER-BY-LETTER ANIMATION) */
+    .splash-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0F172A;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+      color: white;
+    }
+
+    .splash-badge-hindi {
+      background: var(--safety-orange);
+      color: white;
+      font-size: 20px;
+      font-weight: 900;
+      padding: 8px 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.4);
+      animation: splashScale 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes splashScale {
+      from { transform: scale(0.6); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .animated-letters {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .animated-letters .char {
+      font-size: 34px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: translateY(24px) scale(0.8);
+      animation: letterPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes letterPop {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .splash-tagline {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      max-width: 260px;
+      line-height: 1.4;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeIn 0.5s 1.2s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .splash-loader-track {
+      width: 140px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .splash-loader-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--safety-orange);
+      border-radius: 2px;
+      animation: loadFill 1.8s ease-in-out forwards;
+    }
+
+    @keyframes loadFill {
+      to { width: 100%; }
+    }
+
+    .btn-skip-splash {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #CBD5E1;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* 2. DRIVER ONBOARDING / LOGIN VIEW */
+    .login-view {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 6px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .login-title {
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .login-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Language Selection Chips */
+    .lang-selection-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .lang-section-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .lang-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .lang-chip {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-light);
+      border-radius: 8px;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lang-chip.active {
+      background: var(--safety-orange);
+      color: #FFFFFF;
+      border-color: var(--safety-orange);
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface-muted);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--safety-orange);
+      background: #FFFFFF;
+    }
+
+    .otp-row {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .otp-box {
+      flex: 1;
+      min-width: 0;
+      max-width: 65px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 9px 0;
+      border: 1.5px solid var(--border-light);
+      border-radius: 10px;
+      background: var(--surface-muted);
+      color: var(--text-main);
+    }
+
+    .otp-verified-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--status-green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    /* 3. ACTIVE DRIVE VIEW - CLEAN, MINIMALIST AUTOMOTIVE DESIGN */
+    .drive-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .driver-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 8px;
+    }
+
+    .driver-id-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vehicle-tag {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .driver-name-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .speed-status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .speed-status-pill.armed {
+      background: var(--status-green-light);
+      color: var(--status-green);
+      border: 1px solid #BBF7D0;
+    }
+
+    .speed-status-pill.standby {
+      background: var(--status-amber-light);
+      color: var(--status-amber);
+      border: 1px solid #FDE68A;
+    }
+
+    /* Clean Camera Card (>75% of screen height) */
+    .camera-card {
+      position: relative;
+      width: 100%;
+      height: 570px;
+      background: #090D16;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      border: 2px solid var(--border-light);
+      transition: all 0.3s ease;
+    }
+
+    .camera-card.fullscreen-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 99999;
+      border-radius: 0;
+      margin: 0;
+    }
+
+    .camera-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      z-index: 1;
+    }
+
+    .mesh-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .camera-fallback-graphic {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94A3B8;
+      gap: 12px;
+      z-index: 1;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Minimalist Top HUD Bar */
+    .cam-hud-top {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .cv-badge {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: #22C55E;
+      border-radius: 50%;
+      animation: blink-dot 1.5s infinite;
+    }
+
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .cam-btn-expand {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .cam-btn-expand:hover {
+      background: var(--safety-orange);
+    }
+
+    /* Sleek Corner Brackets Face Frame (Subtle, Not Clumsy) */
+    .face-bracket-box {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      height: 220px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .bracket {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: rgba(255, 255, 255, 0.45);
+      border-style: solid;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .bracket-tl { top: 0; left: 0; border-width: 2.5px 0 0 2.5px; border-top-left-radius: 6px; }
+    .bracket-tr { top: 0; right: 0; border-width: 2.5px 2.5px 0 0; border-top-right-radius: 6px; }
+    .bracket-bl { bottom: 0; left: 0; border-width: 0 0 2.5px 2.5px; border-bottom-left-radius: 6px; }
+    .bracket-br { bottom: 0; right: 0; border-width: 0 2.5px 2.5px 0; border-bottom-right-radius: 6px; }
+
+    .face-bracket-box.tracking .bracket {
+      border-color: #22C55E;
+      filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.6));
+    }
+
+    .face-bracket-box.yawning .bracket {
+      border-color: #F59E0B;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+    }
+
+    .face-bracket-box.alarm .bracket {
+      border-color: #EF4444;
+      animation: alertBracket 0.4s infinite alternate;
+    }
+
+    @keyframes alertBracket {
+      from { transform: scale(1); filter: drop-shadow(0 0 4px #EF4444); }
+      to { transform: scale(1.08); filter: drop-shadow(0 0 14px #EF4444); }
+    }
+
+    /* CLEAN UNIFIED DRIVER STATUS PILL (Replaces all clumsy chips) */
+    .driver-status-card {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      padding: 10px 14px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+
+    .status-orb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #22C55E;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+      flex-shrink: 0;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .driver-status-card.state-yawn .status-orb {
+      background: #F59E0B;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
+    }
+
+    .driver-status-card.state-drowsy .status-orb {
+      background: #EF4444;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 1);
+      animation: blink-dot 0.5s infinite;
+    }
+
+    .status-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .status-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.2px;
+    }
+
+    .status-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Minimalist Microsleep Progress Line (Fills only on eye closure) */
+    .closure-line-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .closure-line-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--safety-orange);
+      border-radius: 2px;
+      transition: width 0.08s linear, background-color 0.2s ease;
+    }
+
+    /* Bottom Driver Action Buttons */
+    .driver-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: auto;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--safety-orange);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.22);
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--safety-orange-hover);
+    }
+
+    .btn-primary.btn-active-cam {
+      background: #0F172A;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    }
+
+    .btn-outline {
+      width: 100%;
+      background: var(--bg-white);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-muted);
+    }
+
+    /* REDESIGNED PREMIUM END SHIFT BUTTON */
+    .btn-end-shift {
+      width: 100%;
+      background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+      color: var(--alert-red-dark);
+      border: 1.5px solid #F87171;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.12);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-end-shift:hover {
+      background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+      border-color: #EF4444;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.22);
+    }
+
+    .btn-end-shift:active {
+      transform: translateY(0);
+    }
+
+    /* Emergency Alert Modal (Level 2) */
+    .alert-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(220, 38, 38, 0.96);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 70px 24px 36px 24px;
+      text-align: center;
+      color: white;
+      animation: alert-flash 0.4s infinite alternate;
+    }
+
+    @keyframes alert-flash {
+      from { background: rgba(220, 38, 38, 0.96); }
+      to { background: rgba(153, 27, 27, 0.99); }
+    }
+
+    .alert-modal-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .alert-bell-icon {
+      width: 80px;
+      height: 80px;
+      background: white;
+      color: #DC2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      animation: bell-bounce 0.4s infinite alternate;
+    }
+
+    @keyframes bell-bounce {
+      from { transform: scale(1) rotate(-8deg); }
+      to { transform: scale(1.1) rotate(8deg); }
+    }
+
+    .alert-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+
+    .alert-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.94;
+      max-width: 290px;
+      line-height: 1.4;
+    }
+
+    .btn-i-am-awake {
+      width: 100%;
+      background: #FFFFFF;
+      color: #DC2626;
+      border: 3px solid #FFFFFF;
+      padding: 18px 24px;
+      font-size: 19px;
+      font-weight: 900;
+      border-radius: 18px;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+      letter-spacing: 0.5px;
+      transition: transform 0.1s ease;
+    }
+
+    .btn-i-am-awake:active {
+      transform: scale(0.96);
+    }
+
+    /* 4. SHIFT SUMMARY VIEW */
+    .summary-view {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 8px;
+    }
+
+    .score-circle-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+
+    .score-number {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--status-green);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--status-green-light);
+      color: var(--status-green);
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 20px;
+      border: 1px solid #BBF7D0;
+    }
+
+    /* Right Side Telemetry & Presentation Inspector */
+    .control-panel {
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label-group {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .slider-input {
+      width: 100%;
+      height: 6px;
+      accent-color: var(--safety-orange);
+      cursor: pointer;
+    }
+
+    .spec-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .spec-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .spec-item:last-child {
+      border-bottom: none;
+    }
+
+    .spec-key {
+      font-weight: 600;
+    }
+
+    .spec-val {
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .telemetry-log-box {
+      background: #0F172A;
+      color: #94A3B8;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      height: 120px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Global Header -->
+  <header class="top-nav">
+    <div class="brand-group">
+      <div class="brand-badge">जाग्रत</div>
+      <div class="brand-meta">
+        <h1>Jaagrat Driver Fatigue Guard</h1>
+        <p>Commercial Fleet Safety System — Minimalist Driver HUD</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="badge-pill" id="globalStatusPill">Live Web Vision Active</div>
+    </div>
+  </header>
+
+  <!-- Showcase Layout -->
+  <main class="showcase-container">
+
+    <!-- Phone Hardware Frame -->
+    <div class="phone-wrapper">
+      <div class="phone-frame">
+        <div class="phone-notch">
+          <div class="phone-speaker"></div>
+        </div>
+
+        <!-- Phone Internal Screen -->
+        <div class="app-screen" id="appScreen">
+          
+          <!-- SCREEN 1: ANIMATED SPLASH SCREEN -->
+          <div class="splash-view" id="viewSplash">
+            <div class="splash-badge-hindi">जाग्रत</div>
+            <div class="animated-letters" id="letterContainer"></div>
+            <p class="splash-tagline">AI-Powered Commercial Driver Fatigue & Microsleep Prevention System</p>
+            <div class="splash-loader-track">
+              <div class="splash-loader-bar"></div>
+            </div>
+            <button class="btn-skip-splash" onclick="goToLogin()">Skip Intro &rarr;</button>
+          </div>
+
+          <!-- SCREEN 2: DRIVER ONBOARDING / LOGIN -->
+          <div class="login-view" id="viewLogin">
+            <div class="login-header">
+              <div style="font-size:24px; font-weight:900; color:var(--safety-orange); margin-bottom:2px;">जाग्रत</div>
+              <div class="login-title" id="t_driverOnboarding">Driver Onboarding</div>
+              <div class="login-subtitle" id="t_fleetAuth">Commercial Fleet Shift Authentication</div>
+            </div>
+
+            <!-- Language Selector (8 Native Indian Languages) -->
+            <div class="lang-selection-section">
+              <div class="lang-section-label">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M3 5h12M9 3v2m1 4a15.7 15.7 0 01-4 10 15.7 15.7 0 01-4-10m13 0h-6m6 0a15.7 15.7 0 01-4 10 15.7 15.7 0 01-4-10m10-4v2"/>
+                </svg>
+                <span id="t_selectLanguage">Select Native Language / भाषा</span>
+              </div>
+              <div class="lang-grid">
+                <button class="lang-chip active" onclick="setAppLanguage('en')">English</button>
+                <button class="lang-chip" onclick="setAppLanguage('hi')">हिन्दी</button>
+                <button class="lang-chip" onclick="setAppLanguage('kn')">ಕನ್ನಡ</button>
+                <button class="lang-chip" onclick="setAppLanguage('ta')">தமிழ்</button>
+                <button class="lang-chip" onclick="setAppLanguage('te')">తెలుగు</button>
+                <button class="lang-chip" onclick="setAppLanguage('mr')">मराठी</button>
+                <button class="lang-chip" onclick="setAppLanguage('bn')">বাংলা</button>
+                <button class="lang-chip" onclick="setAppLanguage('gu')">ગુજરાતી</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="t_driverName">Driver Full Name</label>
+              <input type="text" class="form-input" id="inputDriverName" value="Ramesh Kumar" placeholder="Enter driver name">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="t_depot">Depot / Operating Location</label>
+              <input type="text" class="form-input" id="inputDepot" value="Bengaluru Central Depot" placeholder="Enter depot location">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="t_mobile">Mobile Number</label>
+              <input type="tel" class="form-input" id="inputMobile" value="+91 98765 43210" placeholder="+91 XXXXX XXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="t_otp">One-Time Password (OTP)</label>
+              <div class="otp-row">
+                <input type="text" class="otp-box" value="8" readonly>
+                <input type="text" class="otp-box" value="4" readonly>
+                <input type="text" class="otp-box" value="2" readonly>
+                <input type="text" class="otp-box" value="9" readonly>
+              </div>
+              <div class="otp-verified-badge">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+                <span id="t_otpVerified">OTP Verified Successfully</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="t_vehicleReg">Vehicle Registration Number</label>
+              <input type="text" class="form-input" id="inputVehicle" value="KA-01-AB-1234" placeholder="e.g. KA-01-AB-1234" style="font-family:'JetBrains Mono'; text-transform:uppercase;">
+            </div>
+
+            <button class="btn-primary" style="margin-top:4px;" onclick="authenticateAndStartDrive()">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span id="t_startDrive">Authenticate & Start Drive Shift</span>
+            </button>
+          </div>
+
+          <!-- SCREEN 3: ACTIVE DRIVE VIEW - PURE SLEEK AUTOMOTIVE HUD -->
+          <div class="drive-view" id="viewActiveDrive">
+            <div class="driver-header">
+              <div class="driver-id-group">
+                <span class="vehicle-tag" id="dispVehicleTag">KA-01-AB-1234</span>
+                <span class="driver-name-tag" id="dispDriverTag">Ramesh K.</span>
+              </div>
+              <span class="speed-status-pill armed" id="screenSpeedPill">42 km/h • ARMED</span>
+            </div>
+
+            <!-- Front Camera Card (Clean, Uncluttered, >75% of screen height) -->
+            <div class="camera-card" id="cameraViewport">
+              <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
+              <canvas id="meshCanvas" class="mesh-canvas" style="display:none;"></canvas>
+              
+              <div class="camera-fallback-graphic" id="cameraFallback">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <div style="font-size:14px; font-weight:800; color:#E2E8F0;" id="t_frontCamReady">Front Camera Ready</div>
+                <div style="font-size:11px; color:#94A3B8; max-width:230px;" id="t_tapStartCam">Tap "Start AI Front Camera" below to initiate real-time facial landmark detection</div>
+              </div>
+
+              <!-- Overlaid Top Bar (Discreet & Clean) -->
+              <div class="cam-hud-top">
+                <div class="cv-badge">
+                  <span class="live-dot" id="liveDot"></span>
+                  <span id="cvFpsText">AI GUARD ACTIVE</span>
+                </div>
+                <button class="cam-btn-expand" onclick="toggleFullscreenCam()" title="Toggle Fullscreen Cam">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Subtle Corner Brackets (Autofocus HUD) -->
+              <div class="face-bracket-box" id="faceBracketBox">
+                <div class="bracket bracket-tl"></div>
+                <div class="bracket bracket-tr"></div>
+                <div class="bracket bracket-bl"></div>
+                <div class="bracket bracket-br"></div>
+              </div>
+
+              <!-- CLEAN UNIFIED DRIVER STATUS CARD -->
+              <div class="driver-status-card" id="driverStatusCard">
+                <div class="status-orb" id="statusOrb"></div>
+                <div class="status-info">
+                  <div class="status-title" id="driverStatusTitle">Focused & Attentive</div>
+                  <div class="status-sub">
+                    <span id="driverStatusSubtitle">AI Fatigue Guard Active</span>
+                    <span style="opacity:0.6;">•</span>
+                    <span id="sessionIncidentsBadge">0 Incidents</span>
+                  </div>
+                  <!-- Closure line: fills smoothly when eyes are closed -->
+                  <div class="closure-line-track">
+                    <div class="closure-line-fill" id="closureLineFill"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Driver Action Controls -->
+            <div class="driver-actions">
+              <button class="btn-primary" id="btnToggleCam" onclick="toggleFrontCamera()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span id="btnToggleCamText">Start AI Front Camera</span>
+              </button>
+              <button class="btn-outline" onclick="triggerPotholeShock()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span id="t_roadBump">Simulate Road Bump (650ms Cooldown)</span>
+              </button>
+              
+              <!-- REDESIGNED HIGH-IMPACT END SHIFT BUTTON -->
+              <button class="btn-end-shift" onclick="showSummaryView()">
+                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  <path d="M4 4v16"/>
+                </svg>
+                <span id="t_endShift">🏁 End Shift & View Safety Scorecard</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SCREEN 4: SHIFT SAFETY SCORECARD -->
+          <div class="summary-view" id="viewSummary">
+            <div style="font-size:18px; font-weight:800; color:var(--text-main); margin-bottom:2px;" id="t_shiftScorecard">
+              Shift Safety Scorecard
+            </div>
+            
+            <div class="score-circle-card">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="t_scoreSubtitle">
+                Commercial Driver Safety Score
+              </div>
+              <div class="score-number" id="summaryScoreNum">100</div>
+              <div class="score-badge" id="summaryScoreBadge">EXCELLENT • ZERO INCIDENTS</div>
+              <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
+                Formula: Max(20, 100 - (25 × Microsleeps) - (5 × Yawns) - (15 × HeadDrops))
+              </div>
+            </div>
+
+            <div class="spec-card">
+              <div class="spec-item">
+                <span class="spec-key" id="t_summaryDriverLabel">Driver Name</span>
+                <span class="spec-val" id="summaryDriverName">Ramesh Kumar</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key" id="t_summaryVehicleLabel">Vehicle ID</span>
+                <span class="spec-val" id="summaryVehicleId">KA-01-AB-1234</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key" id="t_summaryMicrosleepsLabel">Microsleeps (≥1.2s)</span>
+                <span class="spec-val" id="summaryMicrosleeps" style="color:var(--alert-red);">0</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key" id="t_summaryYawnsLabel">Sustained Yawns</span>
+                <span class="spec-val" id="summaryYawns" style="color:var(--status-amber);">0</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key" id="t_summaryHeadDropsLabel">Head Drops (Nodding)</span>
+                <span class="spec-val" id="summaryHeadDrops" style="color:var(--alert-red);">0</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-key">Cloud Telemetry Queue</span>
+                <span class="spec-val" style="color:var(--status-green);">SYNCHRONIZED (0.42 KB)</span>
+              </div>
+            </div>
+
+            <button class="btn-primary" onclick="returnToDrive()">
+              <span id="t_returnToDrive">Return to Active Drive</span>
+            </button>
+            <button class="btn-outline" style="border-color:#FCA5A5; color:#DC2626;" onclick="signOutDriver()">
+              <span id="t_signOut">🚪 Sign Out Driver & End Shift</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Emergency Level 2 Alert Modal Overlay -->
+        <div class="alert-modal-overlay" id="emergencyModal">
+          <div class="alert-modal-content">
+            <div class="alert-bell-icon">
+              <svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </div>
+            <div class="alert-title" id="alertTitleText">CRITICAL ALERT: MICROSLEEP DETECTED</div>
+            <div class="alert-subtitle" id="alertSubtitleText">
+              Eyes closed sustained ≥ 1.2s. Tap below or keep eyes open for 2.0s to disarm buzzer.
+            </div>
+          </div>
+          <button class="btn-i-am-awake" id="btnIAmAwake" onclick="dismissEmergencyAlert()">
+            I AM AWAKE
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Side Telemetry & Presentation Inspector -->
+    <div class="control-panel">
+      <div class="panel-section-title">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+        </svg>
+        <span>Hardware Simulation & Sensor Gating</span>
+      </div>
+
+      <!-- GPS Speed Slider -->
+      <div class="control-row">
+        <div class="control-label-group">
+          <span>Vehicle Speed (GPS Speedometer)</span>
+          <span id="gpsSpeedDisplay" style="color:var(--status-green); font-family:'JetBrains Mono';">42 km/h (ARMED)</span>
+        </div>
+        <input type="range" min="0" max="110" value="42" class="slider-input" id="gpsSlider" oninput="updateGpsSpeed(this.value)">
+        <p style="font-size:11px; color:var(--text-subtle);">
+          Gating active: Alarms suppressed below 10 km/h (e.g. traffic signal/toll stop).
+        </p>
+      </div>
+
+      <!-- Live Event Telemetry Stream -->
+      <div class="control-row">
+        <div class="control-label-group">
+          <span>On-Device Telemetry Log Stream</span>
+          <span style="font-size:10px; color:var(--status-green);">&lt;1 KB JSON Queue</span>
+        </div>
+        <div class="telemetry-log-box" id="telemetryLogBox">
+          <div>[18:40:02] Engine Started • GPS Armed (42 km/h)</div>
+          <div>[18:40:03] MediaPipe FaceMesh Engine Initialized</div>
+          <div>[18:40:05] Baseline Locked: Attentive Driver State</div>
+        </div>
+      </div>
+
+      <!-- Constraints Card -->
+      <div class="spec-card">
+        <div class="spec-item">
+          <span class="spec-key">Driver HUD Design</span>
+          <span class="spec-val">Clean Minimalist Automotive</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Multi-Language Core</span>
+          <span class="spec-val">8 Indian Native Languages</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Front Camera Viewport</span>
+          <span class="spec-val">&gt; 75% Screen Viewport</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Yawn Warning Banner</span>
+          <span class="spec-val">&ge; 2 Yawns (Chime + Banner)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Excessive Yawn Buzzer</span>
+          <span class="spec-val">&ge; 4 Yawns (Level 2 Siren)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">Head Drop / Nod Pitch</span>
+          <span class="spec-val">Pitch &lt; -12&deg; for &ge; 1.0s (Siren)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-key">EAR Microsleep Trigger</span>
+          <span class="spec-val">&lt; 0.21 for &ge; 1.2s (Level 2 Siren)</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // --- 8 INDIAN NATIVE LANGUAGES LOCALIZATION DICTIONARY ---
+    const i18n = {
+      en: {
+        driverOnboarding: "Driver Onboarding",
+        fleetAuth: "Commercial Fleet Shift Authentication",
+        selectLanguage: "Select Native Language / भाषा",
+        driverName: "Driver Full Name",
+        depot: "Depot / Operating Location",
+        mobile: "Mobile Number",
+        otp: "One-Time Password (OTP)",
+        otpVerified: "OTP Verified Successfully",
+        vehicleReg: "Vehicle Registration Number",
+        startDrive: "Authenticate & Start Drive Shift",
+        armed: "ARMED",
+        standby: "STANDBY",
+        frontCamReady: "Front Camera Ready",
+        tapStartCam: "Tap 'Start AI Front Camera' below to initiate real-time facial landmark detection",
+        focusedAlert: "Focused & Attentive",
+        focusedSub: "AI Fatigue Guard Active",
+        yawnWarning: "Yawn Detected — Stay Alert",
+        yawnSub: "Take a deep breath or sip water",
+        drowsyWarning: "Eyes Closing — Wake Up!",
+        drowsySub: "Sustained closure will trigger siren",
+        headDropWarning: "Head Drop — Keep Eyes on Road",
+        headDropSub: "Posture tilt detected",
+        noFaceWarning: "Searching for Driver Face...",
+        noFaceSub: "Align face inside dashboard frame",
+        incidentsLabel: "{n} Incidents",
+        startCam: "Start AI Front Camera",
+        stopCam: "Stop AI Front Camera",
+        roadBump: "Simulate Road Bump (650ms Cooldown)",
+        endShift: "🏁 End Shift & View Safety Scorecard",
+        criticalMicrosleepTitle: "CRITICAL ALERT: MICROSLEEP DETECTED",
+        criticalHeadDropTitle: "CRITICAL ALERT: HEAD DROP DETECTED",
+        criticalYawnsTitle: "CRITICAL ALERT: 4+ YAWNS (FATIGUE RISK)",
+        disarmText: "Tap below or keep eyes open for 2.0s to disarm buzzer.",
+        iAmAwake: "I AM AWAKE",
+        shiftScorecard: "Shift Safety Scorecard",
+        scoreSubtitle: "Commercial Driver Safety Score",
+        summaryDriverLabel: "Driver Name",
+        summaryVehicleLabel: "Vehicle ID",
+        summaryMicrosleepsLabel: "Microsleeps (≥1.2s)",
+        summaryYawnsLabel: "Sustained Yawns",
+        summaryHeadDropsLabel: "Head Drops (Nodding)",
+        returnToDrive: "Return to Active Drive",
+        signOut: "🚪 Sign Out Driver & End Shift",
+        excellentScore: "EXCELLENT • ZERO FATIGUE RISK",
+        moderateScore: "MODERATE RISK • FATIGUE WARNED",
+        highRiskScore: "HIGH RISK • CRITICAL INTERVENTION"
+      },
+      hi: {
+        driverOnboarding: "ड्राइवर ऑनबोर्डिंग",
+        fleetAuth: "कमर्शियल फ्लीट शिफ्ट प्रमाणीकरण",
+        selectLanguage: "पसंदीदा भाषा चुनें / Select Language",
+        driverName: "ड्राइवर का पूरा नाम",
+        depot: "डिपो / संचालन स्थान",
+        mobile: "मोबाइल नंबर",
+        otp: "वन-टाइम पासवर्ड (ओटीपी)",
+        otpVerified: "ओटीपी सफलतापूर्वक सत्यापित",
+        vehicleReg: "वाहन पंजीकरण संख्या",
+        startDrive: "प्रमाणित करें और यात्रा शुरू करें",
+        armed: "सक्रिय (ARMED)",
+        standby: "स्टैंडबाय",
+        frontCamReady: "फ्रंट कैमरा तैयार है",
+        tapStartCam: "रीयल-टाइम चेहरे की निगरानी शुरू करने के लिए नीचे टैप करें",
+        focusedAlert: "सतर्क और केंद्रित",
+        focusedSub: "एआई सुरक्षा गार्ड सक्रिय",
+        yawnWarning: "जम्हाई दर्ज — सतर्क रहें",
+        yawnSub: "पानी पिएं या गहरी सांस लें",
+        drowsyWarning: "आँखें बंद हो रही हैं — जागें!",
+        drowsySub: "लगातार बंद रहने पर सायरन बजेगा",
+        headDropWarning: "सिर झुका — सड़क पर ध्यान दें",
+        headDropSub: "ड्राइवर का सिर आगे झुक गया है",
+        noFaceWarning: "ड्राइवर का चेहरा खोज रहे हैं...",
+        noFaceSub: "चेहरे को कैमरे के सामने रखें",
+        incidentsLabel: "{n} घटनाएं",
+        startCam: "एआई फ्रंट कैमरा शुरू करें",
+        stopCam: "फ्रंट कैमरा बंद करें",
+        roadBump: "सड़क के झटके का सिमुलेशन (650ms)",
+        endShift: "🏁 शिफ्ट समाप्त करें और सुरक्षा रिपोर्ट देखें",
+        criticalMicrosleepTitle: "गंभीर चेतावनी: माइक्रोस्लीप का पता चला",
+        criticalHeadDropTitle: "गंभीर चेतावनी: सिर झुकने का पता चला",
+        criticalYawnsTitle: "गंभीर चेतावनी: 4+ जम्हाई (अत्यधिक थकान)",
+        disarmText: "अलार्म बंद करने के लिए नीचे दबाएं या 2 सेकंड आँखें खुली रखें।",
+        iAmAwake: "मैं जाग रहा हूँ (I AM AWAKE)",
+        shiftScorecard: "शिफ्ट सुरक्षा स्कोरकार्ड",
+        scoreSubtitle: "कमर्शियल ड्राइवर सुरक्षा स्कोर",
+        summaryDriverLabel: "ड्राइवर का नाम",
+        summaryVehicleLabel: "वाहन संख्या",
+        summaryMicrosleepsLabel: "माइक्रोस्लीप (≥1.2s)",
+        summaryYawnsLabel: "कुल जम्हाई",
+        summaryHeadDropsLabel: "सिर का झुकना",
+        returnToDrive: "सक्रिय ड्राइव पर लौटें",
+        signOut: "🚪 ड्राइवर साइन आउट करें और शिफ्ट समाप्त करें",
+        excellentScore: "उत्कृष्ट • शून्य थकान जोखिम",
+        moderateScore: "मध्यम जोखिम • थकान की चेतावनी",
+        highRiskScore: "उच्च जोखिम • तत्काल कार्रवाई आवश्यक"
+      },
+      kn: {
+        driverOnboarding: "ಚಾಲಕರ ನೋಂದಣಿ",
+        fleetAuth: "ವಾಣಿಜ್ಯ ವಾಹನ ಶಿಫ್ಟ್ ದೃಢೀಕರಣ",
+        selectLanguage: "ಆದ್ಯತೆಯ ಭಾಷೆ / Select Language",
+        driverName: "ಚಾಲಕರ ಪೂರ್ಣ ಹೆಸರು",
+        depot: "ಡಿಪೋ / ಕಾರ್ಯಸ್ಥಳ",
+        mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+        otp: "ಒಟಿಪಿ (OTP)",
+        otpVerified: "ಒಟಿಪಿ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+        vehicleReg: "ವಾಹನ ನೋಂದಣಿ ಸಂಖ್ಯೆ",
+        startDrive: "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸಿ",
+        armed: "ಸಕ್ರಿಯ (ARMED)",
+        standby: "ಸ್ಟ್ಯಾಂಡ್‌ಬೈ",
+        frontCamReady: "ಕ್ಯಾಮೆರಾ ಸಿದ್ಧವಾಗಿದೆ",
+        tapStartCam: "ಮುಖ ಗುರುತಿಸುವಿಕೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ಕೆಳಗೆ ಕ್ಲಿಕ್ ಮಾಡಿ",
+        focusedAlert: "ಗಮನ ಕೇಂದ್ರೀಕೃತವಾಗಿದೆ",
+        focusedSub: "AI ಚಾಲನಾ ಕಾವಲು ಸಕ್ರಿಯ",
+        yawnWarning: "ಆಕಳಿಕೆ ಪತ್ತೆಯಾಗಿದೆ — ಎಚ್ಚರವಿರಿ",
+        yawnSub: "ನೀರು ಕುಡಿಯಿರಿ ಅಥವಾ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ",
+        drowsyWarning: "ಕಣ್ಣುಗಳು ಮುಚ್ಚುತ್ತಿವೆ — ಎಚ್ಚರ!",
+        drowsySub: "ಮುಚ್ಚಿದರೆ ತಕ್ಷಣ ಸೈರನ್ ಮೊಳಗುತ್ತದೆ",
+        headDropWarning: "ತಲೆ ಬಾಗಿದೆ — ರಸ್ತೆಯ ಮೇಲೆ ಗಮನವಿರಲಿ",
+        headDropSub: "ತಲೆ ಮುಂದಕ್ಕೆ ಬಾಗಿರುವುದು ಕಂಡುಬಂದಿದೆ",
+        noFaceWarning: "ಮುಖವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+        noFaceSub: "ಕ್ಯಾಮೆರಾ ಎದುರು ಮುಖವನ್ನು ನೇರವಾಗಿಡಿ",
+        incidentsLabel: "{n} ಘಟನೆಗಳು",
+        startCam: "AI ಕ್ಯಾಮೆರಾ ಪ್ರಾರಂಭಿಸಿ",
+        stopCam: "ಕ್ಯಾಮೆರಾ ನಿಲ್ಲಿಸಿ",
+        roadBump: "ರಸ್ತೆ ತಗ್ಗು ಅನುಕರಣೆ (650ms)",
+        endShift: "🏁 ಶಿಫ್ಟ್ ಮುಕ್ತಾಯ ಮತ್ತು ಸುರಕ್ಷತಾ ವರದಿ",
+        criticalMicrosleepTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: ಮೈಕ್ರೋಸ್ಲೀಪ್ ಪತ್ತೆಯಾಗಿದೆ",
+        criticalHeadDropTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: ತಲೆ ಬಾಗುವುದು ಪತ್ತೆಯಾಗಿದೆ",
+        criticalYawnsTitle: "ತೀವ್ರ ಎಚ್ಚರಿಕೆ: 4+ ಆಕಳಿಕೆಗಳು (ವಾಹನ ನಿಲ್ಲಿಸಿ)",
+        disarmText: "ಅಲಾರಾಂ ನಿಲ್ಲಿಸಲು ಕೆಳಗೆ ಒತ್ತಿ ಅಥವಾ 2 ಸೆಕೆಂಡು ಕಣ್ಣು ತೆರೆಯಿರಿ.",
+        iAmAwake: "ನಾನು ಎಚ್ಚರವಾಗಿದ್ದೇನೆ (I AM AWAKE)",
+        shiftScorecard: "ಶಿಫ್ಟ್ ಸುರಕ್ಷತಾ ಸ್ಕೋರ್‌ಕಾರ್ಡ್",
+        scoreSubtitle: "ಚಾಲಕರ ಸುರಕ್ಷತಾ ಸ್ಕೋರ್",
+        summaryDriverLabel: "ಚಾಲಕರ ಹೆಸರು",
+        summaryVehicleLabel: "ವಾಹನ ಸಂಖ್ಯೆ",
+        summaryMicrosleepsLabel: "ಮೈಕ್ರೋಸ್ಲೀಪ್ (≥1.2s)",
+        summaryYawnsLabel: "ಒಟ್ಟು ಆಕಳಿಕೆಗಳು",
+        summaryHeadDropsLabel: "ತಲೆ ಬಾಗುವಿಕೆ",
+        returnToDrive: "ಚಾಲನೆಗೆ ಹಿಂತಿರುಗಿ",
+        signOut: "🚪 ಸೈನ್ ಔಟ್ ಮಾಡಿ ಶಿಫ್ಟ್ ಮುಗಿಸಿ",
+        excellentScore: "ಅತ್ಯುತ್ತಮ • ಶೂನ್ಯ ಅಪಾಯ",
+        moderateScore: "ಮಧ್ಯಮ ಅಪಾಯ • ಎಚ್ಚರಿಕೆ ನೀಡಲಾಗಿದೆ",
+        highRiskScore: "ಅಪಾಯಕಾರಿ • ತಕ್ಷಣ ವಾಹನ ನಿಲ್ಲಿಸಿ"
+      },
+      ta: {
+        driverOnboarding: "ஓட்டுநர் பதிவு",
+        fleetAuth: "வணிக வாகன ஷிப்ட் அங்கீகாரம்",
+        selectLanguage: "விருப்பமான மொழி / Select Language",
+        driverName: "ஓட்டுநர் முழுப் பெயர்",
+        depot: "டிப்போ / இயக்க இடம்",
+        mobile: "கைபேசி எண்",
+        otp: "ஒருமுறை கடவுச்சொல் (OTP)",
+        otpVerified: "OTP வெற்றிகரமாக சரிபார்க்கப்பட்டது",
+        vehicleReg: "வாகன பதிவு எண்",
+        startDrive: "சரிபார்த்து பயணத்தைத் தொடங்குங்கள்",
+        armed: "செயலில் உள்ளது",
+        standby: "காத்திருப்பு",
+        frontCamReady: "கேமரா தயாராக உள்ளது",
+        tapStartCam: "முக கண்காணிப்பைத் தொடங்க கீழே தட்டவும்",
+        focusedAlert: "கவனமுடன் உள்ளார்",
+        focusedSub: "AI பாதுகாப்பு இயங்குகிறது",
+        yawnWarning: "கொட்டாவி — விழிப்புடன் இருங்கள்",
+        yawnSub: "தண்ணீர் அருந்தவும் அல்லது ஓய்வெடுக்கவும்",
+        drowsyWarning: "கண்கள் மூடுகின்றன — விழித்திருங்கள்!",
+        drowsySub: "கண்கள் மூடினால் சைரன் ஒலிக்கும்",
+        headDropWarning: "தலை சரிந்தது — சாலையில் கவனம்",
+        headDropSub: "தலை குனிவது கண்டறியப்பட்டது",
+        noFaceWarning: "முகம் தேடப்படுகிறது...",
+        noFaceSub: "கேமராவின் முன் சரியாக அமருங்கள்",
+        incidentsLabel: "{n} நிகழ்வுகள்",
+        startCam: "AI முன் கேமராவைத் தொடங்கு",
+        stopCam: "முன் கேமராவை நிறுத்து",
+        roadBump: "சாலை மேடு உருவகப்படுத்துதல் (650ms)",
+        endShift: "🏁 பயணத்தை முடித்து அறிக்கை பார்க்க",
+        criticalMicrosleepTitle: "முக்கிய எச்சரிக்கை: மைக்ரோஸ்லீப் கண்டறியப்பட்டது",
+        criticalHeadDropTitle: "முக்கிய எச்சரிக்கை: தலை சாய்வு கண்டறியப்பட்டது",
+        criticalYawnsTitle: "முக்கிய எச்சரிக்கை: 4+ கொட்டாவிகள் (அதிக சோர்வு)",
+        disarmText: "சைரனை நிறுத்த கீழே தட்டவும் அல்லது 2 வினாடிகள் கண்களைத் திறந்து வைக்கவும்.",
+        iAmAwake: "நான் விழித்திருக்கிறேன் (I AM AWAKE)",
+        shiftScorecard: "பயண பாதுகாப்பு அறிக்கை",
+        scoreSubtitle: "ஓட்டுநர் பாதுகாப்பு மதிப்பெண்",
+        summaryDriverLabel: "ஓட்டுநர் பெயர்",
+        summaryVehicleLabel: "வாகன எண்",
+        summaryMicrosleepsLabel: "மைக்ரோஸ்லீப் (≥1.2s)",
+        summaryYawnsLabel: "மொத்த கொட்டாவிகள்",
+        summaryHeadDropsLabel: "தலை சரிவுகள்",
+        returnToDrive: "மீண்டும் பயணத்திற்குச் செல்",
+        signOut: "🚪 வெளியேறி ஷிப்ட் முடிக்கவும்",
+        excellentScore: "சிறப்பானது • பூஜ்ஜிய ஆபத்து",
+        moderateScore: "மிதமான ஆபத்து • சோர்வு எச்சரிக்கை",
+        highRiskScore: "அதிக ஆபத்து • உடனடி தலையீடு தேவை"
+      },
+      te: {
+        driverOnboarding: "డ్రైవర్ ఆన్‌బోర్డింగ్",
+        fleetAuth: "కమర్షియల్ ఫ్లీట్ షిఫ్ట్ ప్రామాణీకరణ",
+        selectLanguage: "ప్రాధాన్య భాష / Select Language",
+        driverName: "డ్రైవర్ పూర్తి పేరు",
+        depot: "డిపో / నిర్వహణ ప్రదేశం",
+        mobile: "మొబైల్ నంబర్",
+        otp: "ఓటీపీ (OTP)",
+        otpVerified: "OTP విజయవంతంగా ధృవీకరించబడింది",
+        vehicleReg: "వాహన రిజిస్ట్రేషన్ సంఖ్య",
+        startDrive: "ధృవీకరించి ప్రయాణాన్ని ప్రారంభించండి",
+        armed: "సక్రియం (ARMED)",
+        standby: "స్టాండ్‌బై",
+        frontCamReady: "కెమెరా సిద్ధంగా ఉంది",
+        tapStartCam: "ఫేస్ మానిటరింగ్ ప్రారంభించడానికి క్రింద నొక్కండి",
+        focusedAlert: "ఏకాగ్రతతో ఉన్నారు",
+        focusedSub: "AI రక్షణ సక్రియంగా ఉంది",
+        yawnWarning: "ఆవలింత — అప్రమత్తంగా ఉండండి",
+        yawnSub: "మంచినీరు తాగండి లేదా విశ్రాంతి తీసుకోండి",
+        drowsyWarning: "కళ్ళు మూసుకుంటున్నాయి — మేల్కొనండి!",
+        drowsySub: "మూసుకుంటే సైరన్ మోగుతుంది",
+        headDropWarning: "తల వాలింది — రోడ్డుపై దృష్టి పెట్టండి",
+        headDropSub: "తల క్రిందికి వాలినట్లు గుర్తించబడింది",
+        noFaceWarning: "ముఖం కోసం వెతుకుతోంది...",
+        noFaceSub: "కెమెరా ముందు ముఖం నిటారుగా ఉంచండి",
+        incidentsLabel: "{n} సంఘటనలు",
+        startCam: "AI కెమెరాను ప్రారంభించండి",
+        stopCam: "కెమెరాను ఆపివేయండి",
+        roadBump: "రోడ్డు గుంతల షాక్ సిమ్యులేషన్ (650ms)",
+        endShift: "🏁 షిఫ్ట్ ముగించి భద్రతా నివేదిక చూడండి",
+        criticalMicrosleepTitle: "తీవ్రమైన హెచ్చరిక: మైక్రోస్లీప్ గుర్తించబడింది",
+        criticalHeadDropTitle: "తీవ్రమైన హెచ్చరిక: తల వాలడం గుర్తించబడింది",
+        criticalYawnsTitle: "తీవ్ర హెచ్చరిక: 4+ ఆవలింతలు (వాహనం ఆపండి)",
+        disarmText: "సైరన్ ఆపడానికి క్రింద నొక్కండి లేదా 2 సెకన్లు కళ్ళు తెరిచి ఉంచండి.",
+        iAmAwake: "నేను మెలకువగా ఉన్నాను (I AM AWAKE)",
+        shiftScorecard: "షిఫ్ట్ భద్రతా స్కోర్‌కార్డ్",
+        scoreSubtitle: "డ్రైవర్ సేఫ్టీ స్కోరు",
+        summaryDriverLabel: "డ్రైవర్ పేరు",
+        summaryVehicleLabel: "వాహనం సంఖ్య",
+        summaryMicrosleepsLabel: "మైక్రోస్లీప్ (≥1.2s)",
+        summaryYawnsLabel: "మొత్తం ఆవలింతలు",
+        summaryHeadDropsLabel: "తల వాలడం",
+        returnToDrive: "తిరిగి డ్రైవ్‌కు వెళ్ళండి",
+        signOut: "🚪 సైన్ అవుట్ చేసి షిఫ్ట్ ముగించండి",
+        excellentScore: "అద్భుతం • సున్నా అలసట ప్రమాదం",
+        moderateScore: "మధ్యస్థ ప్రమాదం • హెచ్చరిక జారీ చేయబడింది",
+        highRiskScore: "అధిక ప్రమాదం • వాహనం వెంటనే ఆపండి"
+      },
+      mr: {
+        driverOnboarding: "चालक नोंदणी",
+        fleetAuth: "व्यावसायिक फ्लीट शिफ्ट प्रमाणीकरण",
+        selectLanguage: "पसंतीची भाषा / Select Language",
+        driverName: "चालकाचे पूर्ण नाव",
+        depot: "डेपो / ऑपरेटिंग स्थान",
+        mobile: "मोबाईल नंबर",
+        otp: "ओटीपी (OTP)",
+        otpVerified: "ओटीपी यशस्वीरित्या पडताळला",
+        vehicleReg: "वाहन नोंदणी क्रमांक",
+        startDrive: "प्रमाणित करा आणि प्रवास सुरू करा",
+        armed: "सक्रिय (ARMED)",
+        standby: "स्टँडबाय",
+        frontCamReady: "समोरचा कॅमेरा तयार आहे",
+        tapStartCam: "चेहरा ट्रॅकिंग सुरू करण्यासाठी खाली टॅप करा",
+        focusedAlert: "सतर्क आणि लक्ष केंद्रित",
+        focusedSub: "AI सुरक्षा रक्षक सक्रिय",
+        yawnWarning: "जांभई आढळली — जागे राहा",
+        yawnSub: "पाणी प्या किंवा विश्रांती घ्या",
+        drowsyWarning: "डोळे मिटत आहेत — जागे व्हा!",
+        drowsySub: "मिटलेले राहिल्यास सायरन वाजेल",
+        headDropWarning: "मान झुकली — रस्त्याकडे लक्ष द्या",
+        headDropSub: "डोके पुढे झुकल्याचे आढळले",
+        noFaceWarning: "चेहरा शोधत आहे...",
+        noFaceSub: "कॅमेऱ्यासमोर सरळ बसा",
+        incidentsLabel: "{n} घटना",
+        startCam: "AI कॅमेरा सुरू करा",
+        stopCam: "कॅमेरा बंद करा",
+        roadBump: "रस्त्यावरील खड्ड्यांचा धक्का (650ms)",
+        endShift: "🏁 शिफ्ट संपवा आणि सुरक्षा अहवाल पहा",
+        criticalMicrosleepTitle: "गंभीर इशारा: मायक्रोस्लीप आढळली",
+        criticalHeadDropTitle: "गंभीर इशारा: डोके झुकल्याचे आढळले",
+        criticalYawnsTitle: "गंभीर इशारा: 4+ जांभया (गाडी बाजूला थांबवा)",
+        disarmText: "बझर थांबवण्यासाठी खाली दाबा किंवा 2 सेकंद डोळे उघडे ठेवा.",
+        iAmAwake: "मी जागा आहे (I AM AWAKE)",
+        shiftScorecard: "शिफ्ट सुरक्षा स्कोअरकार्ड",
+        scoreSubtitle: "चालक सुरक्षा स्कोअर",
+        summaryDriverLabel: "चालकाचे नाव",
+        summaryVehicleLabel: "वाहन क्रमांक",
+        summaryMicrosleepsLabel: "मायक्रोस्लीप (≥1.2s)",
+        summaryYawnsLabel: "एकूण जांभया",
+        summaryHeadDropsLabel: "मान झुकणे",
+        returnToDrive: "सक्रिय ड्राईव्हवर परत जा",
+        signOut: "🚪 साइन आउट करा आणि शिफ्ट संपवा",
+        excellentScore: "उत्कृष्ट • शून्य धोका",
+        moderateScore: "मध्यम धोका • थकवा इशारा",
+        highRiskScore: "अति धोका • त्वरित गाडी थांबवा"
+      },
+      bn: {
+        driverOnboarding: "ড্রাইভার অনবোর্ডিং",
+        fleetAuth: "বাণিজ্যিক ফ্লিট শিফট প্রমাণীকরণ",
+        selectLanguage: "পছন্দের ভাষা / Select Language",
+        driverName: "ড্রাইভারের সম্পূর্ণ নাম",
+        depot: "ডিপো / কাজের এলাকা",
+        mobile: "মোবাইল নম্বর",
+        otp: "ওটিপি (OTP)",
+        otpVerified: "ওটিপি সফলভাবে যাচাই করা হয়েছে",
+        vehicleReg: "গাড়ির রেজিস্ট্রেশন নম্বর",
+        startDrive: "যাচাই করুন এবং যাত্রা শুরু করুন",
+        armed: "সক্রিয় (ARMED)",
+        standby: "স্ট্যান্ডবাই",
+        frontCamReady: "সামনের ক্যামেরা প্রস্তুত",
+        tapStartCam: "ফেস ট্র্যাকিং শুরু করতে নিচে চাপুন",
+        focusedAlert: "মনোযোগী ও সতর্ক",
+        focusedSub: "AI সুরক্ষা ব্যবস্থা সক্রিয়",
+        yawnWarning: "হাই তোলা শনাক্ত — সতর্ক থাকুন",
+        yawnSub: "একটু পানি পান করুন বা বিশ্রাম নিন",
+        drowsyWarning: "চোখ বন্ধ হচ্ছে — জেগে উঠুন!",
+        drowsySub: "চোখ বন্ধ থাকলে সাইরেন বাজবে",
+        headDropWarning: "মাথা ঝুঁকেছে — রাস্তায় নজর রাখুন",
+        headDropSub: "মাথা নিচে ঝুঁকে পড়েছে",
+        noFaceWarning: "ড্রাইভারের মুখ খোঁজা হচ্ছে...",
+        noFaceSub: "ক্যামেরার সামনে সোজা বসুন",
+        incidentsLabel: "{n} টি ঘটনা",
+        startCam: "AI ক্যামেরা চালু করুন",
+        stopCam: "ক্যামেরা বন্ধ করুন",
+        roadBump: "রাস্তার ঝাঁকুনি সিমুলেশন (650ms)",
+        endShift: "🏁 শিফট শেষ করুন এবং সুরক্ষা রিপোর্ট দেখুন",
+        criticalMicrosleepTitle: "জরুরি সতর্কতা: মাইক্রোস্লিপ শনাক্ত হয়েছে",
+        criticalHeadDropTitle: "জরুরি সতর্কতা: মাথা ঝুঁকে পড়া শনাক্ত হয়েছে",
+        criticalYawnsTitle: "জরুরি সতর্কতা: 4+ হাই তোলা (গাড়ি থামান)",
+        disarmText: "সাইরেন বন্ধ করতে নিচে চাপুন অথবা ২ সেকেন্ড চোখ খোলা রাখুন।",
+        iAmAwake: "আমি জেগে আছি (I AM AWAKE)",
+        shiftScorecard: "শিফট সুরক্ষা স্কোরকার্ড",
+        scoreSubtitle: "ড্রাইভার সুরক্ষা স্কোর",
+        summaryDriverLabel: "ড্রাইভারের নাম",
+        summaryVehicleLabel: "গাড়ির নম্বর",
+        summaryMicrosleepsLabel: "মাইক্রোস্লিপ (≥1.2s)",
+        summaryYawnsLabel: "মোট হাই তোলা",
+        summaryHeadDropsLabel: "মাথা ঝোঁকা",
+        returnToDrive: "ড্রাইভে ফিরে যান",
+        signOut: "🚪 সাইন আউট করুন এবং শিফট শেষ করুন",
+        excellentScore: "চমৎকার • শূন্য ক্লান্তি ঝুঁকি",
+        moderateScore: "মাঝারি ঝুঁকি • ক্লান্তি সতর্কতা",
+        highRiskScore: "উচ্চ ঝুঁকি • অবিলম্বে গাড়ি থামান"
+      },
+      gu: {
+        driverOnboarding: "ડ્રાઈવર ઓનબોર્ડિંગ",
+        fleetAuth: "કોમર્શિયલ ફ્લીટ શિફ્ટ પ્રમાણીકરણ",
+        selectLanguage: "પસંદગીની ભાષા / Select Language",
+        driverName: "ડ્રાઈવરનું પૂરું નામ",
+        depot: "ડેપો / ઓપરેટિંગ સ્થળ",
+        mobile: "મોબાઈલ નંબર",
+        otp: "ઓટીપી (OTP)",
+        otpVerified: "ઓટીપી સફળતાપૂર્વક ચકાસાયેલ છે",
+        vehicleReg: "વાહન નોંધણી નંબર",
+        startDrive: "પ્રમાણિત કરો અને ડ્રાઇવ શરૂ કરો",
+        armed: "સક્રિય (ARMED)",
+        standby: "સ્ટેન્ડબાય",
+        frontCamReady: "કેમેરો તૈયાર છે",
+        tapStartCam: "ફેસ મોનિટરિંગ શરૂ કરવા માટે નીચે ટેપ કરો",
+        focusedAlert: "સતર્ક અને કેન્દ્રિત",
+        focusedSub: "AI સુરક્ષા ગાર્ડ સક્રિય",
+        yawnWarning: "બગાસું જણાયું — જાગૃત રહો",
+        yawnSub: "પાણી પીઓ અથવા ઊંડો શ્વાસ લો",
+        drowsyWarning: "આંખો બંધ થઈ રહી છે — જાગો!",
+        drowsySub: "બંધ રહેવા પર સાયરન વાગશે",
+        headDropWarning: "માથું ઝૂક્યું — રસ્તા પર ધ્યાન આપો",
+        headDropSub: "માથું આગળ ઝૂકેલું જણાયું",
+        noFaceWarning: "ચહેરો શોધી રહ્યા છીએ...",
+        noFaceSub: "કેમેરા સામે સીધા બેસો",
+        incidentsLabel: "{n} ઘટનાઓ",
+        startCam: "AI કેમેરો શરૂ કરો",
+        stopCam: "કેમેરો બંધ કરો",
+        roadBump: "રસ્તાના ખાડાનો આંચકો (650ms)",
+        endShift: "🏁 શિફ્ટ સમાપ્ત કરો અને સુરક્ષા રિપોર્ટ જુઓ",
+        criticalMicrosleepTitle: "ગંભીર ચેતવણી: માઇક્રોસ્લીપ જણાઈ",
+        criticalHeadDropTitle: "ગંભીર ચેતવણી: માથું ઝૂક્યાનું જણાયું",
+        criticalYawnsTitle: "ગંભીર ચેતવણી: 4+ બગાસા (વાહન રોકો)",
+        disarmText: "સાયરન બંધ કરવા નીચે ટેપ કરો અથવા 2 સેકન્ડ આંખો ખુલ્લી રાખો.",
+        iAmAwake: "હું જાગૃત છું (I AM AWAKE)",
+        shiftScorecard: "શિફ્ટ સુરક્ષા સ્કોરકાર્ડ",
+        scoreSubtitle: "ડ્રાઈવર સુરક્ષા સ્કોર",
+        summaryDriverLabel: "ડ્રાઈવરનું નામ",
+        summaryVehicleLabel: "વાહન નંબર",
+        summaryMicrosleepsLabel: "માઇક્રોસ્લીપ (≥1.2s)",
+        summaryYawnsLabel: "કુલ બગાસા",
+        summaryHeadDropsLabel: "માથું ઝૂકવું",
+        returnToDrive: "ડ્રાઇવ પર પાછા ફરો",
+        signOut: "🚪 સાઇન આઉટ કરો અને શિફ્ટ સમાપ્ત કરો",
+        excellentScore: "ઉત્કૃષ્ટ • શૂન્ય જોખમ",
+        moderateScore: "મધ્યમ જોખમ • થાકની ચેતવણી",
+        highRiskScore: "ઉચ્ચ જોખમ • તાત્કાલિક વાહન રોકો"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function setAppLanguage(langKey) {
+      if (!i18n[langKey]) return;
+      currentLang = langKey;
+      const dict = i18n[langKey];
+
+      document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.lang-chip')).find(b => {
+        return b.getAttribute('onclick') === "setAppLanguage('" + langKey + "')";
+      });
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const updateText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val) el.textContent = val;
+      };
+
+      updateText('t_driverOnboarding', dict.driverOnboarding);
+      updateText('t_fleetAuth', dict.fleetAuth);
+      updateText('t_selectLanguage', dict.selectLanguage);
+      updateText('t_driverName', dict.driverName);
+      updateText('t_depot', dict.depot);
+      updateText('t_mobile', dict.mobile);
+      updateText('t_otp', dict.otp);
+      updateText('t_otpVerified', dict.otpVerified);
+      updateText('t_vehicleReg', dict.vehicleReg);
+      updateText('t_startDrive', dict.startDrive);
+      updateText('t_frontCamReady', dict.frontCamReady);
+      updateText('t_tapStartCam', dict.tapStartCam);
+      updateText('t_roadBump', dict.roadBump);
+      updateText('t_endShift', dict.endShift);
+      updateText('t_shiftScorecard', dict.shiftScorecard);
+      updateText('t_scoreSubtitle', dict.scoreSubtitle);
+      updateText('t_summaryDriverLabel', dict.summaryDriverLabel);
+      updateText('t_summaryVehicleLabel', dict.summaryVehicleLabel);
+      updateText('t_summaryMicrosleepsLabel', dict.summaryMicrosleepsLabel);
+      updateText('t_summaryYawnsLabel', dict.summaryYawnsLabel);
+      updateText('t_summaryHeadDropsLabel', dict.summaryHeadDropsLabel);
+      updateText('t_returnToDrive', dict.returnToDrive);
+      updateText('t_signOut', dict.signOut);
+      updateText('btnIAmAwake', dict.iAmAwake);
+
+      if (!cameraActive) {
+        updateText('btnToggleCamText', dict.startCam);
+      } else {
+        updateText('btnToggleCamText', dict.stopCam);
+      }
+
+      updateGpsSpeed(currentSpeed);
+      updateDriverStatus();
+      if (document.getElementById('viewSummary').style.display !== 'none') {
+        calculateSafetyScore();
+      }
+
+      logEvent('App language switched to: ' + langKey.toUpperCase());
+    }
+
+    // --- APP FLOW & STATE ---
+    let driverData = {
+      name: 'Ramesh Kumar',
+      depot: 'Bengaluru Central Depot',
+      mobile: '+91 98765 43210',
+      vehicle: 'KA-01-AB-1234'
+    };
+
+    let currentSpeed = 42;
+    let isArmed = true;
+    let cameraActive = false;
+    let isFullscreenCam = false;
+    let videoStream = null;
+    let faceMeshInstance = null;
+    let isLevel2AlarmActive = false;
+
+    // Detection Tracking
+    let eyeClosedStartTime = null;
+    let eyeOpenContinuousStart = null;
+    let yawnStartTime = null;
+    let yawnCounted = false;
+    let headDropStartTime = null;
+    
+    let microsleepCount = 0;
+    let yawnCount = 0;
+    let headDropCount = 0;
+    let potholeCooldownUntil = 0;
+    let lastFpsTime = Date.now();
+    let frameCounter = 0;
+
+    // Driver Current State enum: 'focused', 'yawning', 'drowsy', 'headdrop', 'noface'
+    let currentDriverState = 'focused';
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    let sirenOsc1 = null;
+    let sirenTimer = null;
+
+    // --- INITIALIZE LETTER ANIMATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const brandStr = "JAAGRAT";
+      const container = document.getElementById('letterContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < brandStr.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = brandStr[i];
+        span.style.animationDelay = (i * 0.12) + 's';
+        container.appendChild(span);
+      }
+
+      setTimeout(() => {
+        const splash = document.getElementById('viewSplash');
+        if (splash.style.display !== 'none') {
+          goToLogin();
+        }
+      }, 2400);
+    });
+
+    function goToLogin() {
+      const splash = document.getElementById('viewSplash');
+      splash.style.display = 'none';
+      document.getElementById('viewLogin').style.display = 'flex';
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+    }
+
+    function authenticateAndStartDrive() {
+      initAudio();
+      driverData.name = document.getElementById('inputDriverName').value || 'Ramesh Kumar';
+      driverData.depot = document.getElementById('inputDepot').value || 'Bengaluru';
+      driverData.mobile = document.getElementById('inputMobile').value || '+91 98765 43210';
+      driverData.vehicle = document.getElementById('inputVehicle').value || 'KA-01-AB-1234';
+
+      document.getElementById('dispVehicleTag').textContent = driverData.vehicle;
+      document.getElementById('dispDriverTag').textContent = driverData.name.split(' ')[0] + ' ' + (driverData.name.split(' ')[1] ? driverData.name.split(' ')[1][0] + '.' : '');
+      document.getElementById('summaryDriverName').textContent = driverData.name;
+      document.getElementById('summaryVehicleId').textContent = driverData.vehicle;
+
+      document.getElementById('viewLogin').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'flex';
+      logEvent('Driver ' + driverData.name + ' authenticated with vehicle ' + driverData.vehicle + ' in [' + currentLang.toUpperCase() + ']');
+
+      if (!cameraActive) {
+        toggleFrontCamera();
+      }
+    }
+
+    function showSummaryView() {
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'flex';
+      calculateSafetyScore();
+    }
+
+    function returnToDrive() {
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'flex';
+    }
+
+    function signOutDriver() {
+      if (cameraActive) {
+        toggleFrontCamera();
+      }
+      stopEmergencyBuzzer();
+      document.getElementById('emergencyModal').style.display = 'none';
+      document.getElementById('viewSummary').style.display = 'none';
+      document.getElementById('viewActiveDrive').style.display = 'none';
+      goToLogin();
+      logEvent('Driver signed out from shift.');
+    }
+
+    // --- AUDIO GENERATOR ---
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function logEvent(msg) {
+      const box = document.getElementById('telemetryLogBox');
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.textContent = '[' + timeStr + '] ' + msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // Level 1 Warning Chime
+    function playWarningChime() {
+      initAudio();
+      try {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.65);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.12);
+        osc2.start(audioCtx.currentTime + 0.12);
+        osc2.stop(audioCtx.currentTime + 0.65);
+      } catch (e) {
+        console.error('Audio chime error:', e);
+      }
+    }
+
+    // Level 2 Emergency Siren Buzzer
+    function playEmergencyBuzzer() {
+      initAudio();
+      stopEmergencyBuzzer();
+
+      try {
+        sirenOsc1 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        sirenOsc1.type = 'sawtooth';
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+
+        let high = false;
+        sirenOsc1.frequency.setValueAtTime(1800, audioCtx.currentTime);
+        sirenTimer = setInterval(() => {
+          if (!sirenOsc1) return;
+          high = !high;
+          sirenOsc1.frequency.setValueAtTime(high ? 2400 : 1800, audioCtx.currentTime);
+        }, 110);
+
+        sirenOsc1.connect(gain);
+        gain.connect(audioCtx.destination);
+        sirenOsc1.start();
+
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200, 100, 400]);
+        }
+      } catch (e) {
+        console.error('Audio siren error:', e);
+      }
+    }
+
+    function stopEmergencyBuzzer() {
+      if (sirenTimer) {
+        clearInterval(sirenTimer);
+        sirenTimer = null;
+      }
+      if (sirenOsc1) {
+        try { sirenOsc1.stop(); } catch(e) {}
+        sirenOsc1.disconnect();
+        sirenOsc1 = null;
+      }
+    }
+
+    // --- GPS SPEEDOMETER & GATING ---
+    function updateGpsSpeed(val) {
+      currentSpeed = parseInt(val);
+      const display = document.getElementById('gpsSpeedDisplay');
+      const pill = document.getElementById('screenSpeedPill');
+      const dict = i18n[currentLang] || i18n.en;
+      
+      if (currentSpeed < 10) {
+        isArmed = false;
+        display.textContent = currentSpeed + ' km/h (' + dict.standby + ')';
+        display.style.color = 'var(--status-amber)';
+        pill.className = 'speed-status-pill standby';
+        pill.textContent = currentSpeed + ' km/h • ' + dict.standby;
+      } else {
+        isArmed = true;
+        display.textContent = currentSpeed + ' km/h (' + dict.armed + ')';
+        display.style.color = 'var(--status-green)';
+        pill.className = 'speed-status-pill armed';
+        pill.textContent = currentSpeed + ' km/h • ' + dict.armed;
+      }
+    }
+
+    // --- ROAD BUMP / POTHOLE SUPPRESSION ---
+    function triggerPotholeShock() {
+      potholeCooldownUntil = Date.now() + 650;
+      const card = document.getElementById('cameraViewport');
+      card.style.transform = 'translateY(-8px)';
+      setTimeout(() => card.style.transform = 'translateY(8px)', 80);
+      setTimeout(() => card.style.transform = 'translateY(0)', 160);
+
+      const pill = document.getElementById('screenSpeedPill');
+      const origText = pill.textContent;
+      pill.textContent = 'BUMP (>1.8G) SUPPRESSED';
+      pill.style.background = '#FEE2E2';
+      pill.style.color = '#DC2626';
+
+      logEvent('Pothole shock > 1.8G detected. Suppressing eye drop false-positive for 650ms.');
+
+      setTimeout(() => {
+        pill.textContent = origText;
+        updateGpsSpeed(currentSpeed);
+      }, 650);
+    }
+
+    // --- COMPUTER VISION: MEDIAPIPE FACE MESH ---
+    function dist(p1, p2) {
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function calculateEAR(lm, idxs) {
+      const v1 = dist(lm[idxs[1]], lm[idxs[5]]);
+      const v2 = dist(lm[idxs[2]], lm[idxs[4]]);
+      const h  = dist(lm[idxs[0]], lm[idxs[3]]);
+      return (v1 + v2) / (2.0 * (h || 0.001));
+    }
+
+    function calculateMAR(lm) {
+      const v = dist(lm[13], lm[14]);
+      const h = dist(lm[78], lm[308]);
+      return v / (h || 0.001);
+    }
+
+    async function initFaceMesh() {
+      if (faceMeshInstance) return faceMeshInstance;
+
+      document.getElementById('cvFpsText').textContent = 'LOADING AI GUARD...';
+      logEvent('Initializing Google MediaPipe FaceMesh engine...');
+
+      faceMeshInstance = new FaceMesh({
+        locateFile: (file) => 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/' + file
+      });
+
+      faceMeshInstance.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+
+      faceMeshInstance.onResults(onFaceMeshResults);
+      await faceMeshInstance.initialize();
+      document.getElementById('cvFpsText').textContent = 'AI GUARD 30 FPS';
+      logEvent('FaceMesh neural models loaded via WebAssembly.');
+      return faceMeshInstance;
+    }
+
+    async function toggleFrontCamera() {
+      initAudio();
+      const video = document.getElementById('webcamElement');
+      const canvas = document.getElementById('meshCanvas');
+      const fallback = document.getElementById('cameraFallback');
+      const btn = document.getElementById('btnToggleCam');
+      const btnText = document.getElementById('btnToggleCamText');
+      const dict = i18n[currentLang] || i18n.en;
+
+      if (!cameraActive) {
+        try {
+          btnText.textContent = 'Connecting Camera...';
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'user',
+              width: { ideal: 640 },
+              height: { ideal: 480 }
+            },
+            audio: false
+          });
+
+          videoStream = stream;
+          video.srcObject = stream;
+          video.style.display = 'block';
+          canvas.style.display = 'block';
+          fallback.style.display = 'none';
+
+          await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+              video.play();
+              resolve();
+            };
+          });
+
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+
+          await initFaceMesh();
+
+          cameraActive = true;
+          btn.classList.add('btn-active-cam');
+          btnText.textContent = dict.stopCam;
+          logEvent('Front Camera stream attached (' + canvas.width + 'x' + canvas.height + ')');
+
+          startDetectionLoop();
+        } catch (err) {
+          console.error(err);
+          alert('Camera error: ' + err.message + ' - Please ensure camera permission is allowed.');
+          btnText.textContent = dict.startCam;
+        }
+      } else {
+        cameraActive = false;
+        if (videoStream) {
+          videoStream.getTracks().forEach(t => t.stop());
+          videoStream = null;
+        }
+        video.style.display = 'none';
+        canvas.style.display = 'none';
+        fallback.style.display = 'flex';
+        btn.classList.remove('btn-active-cam');
+        btnText.textContent = dict.startCam;
+        document.getElementById('cvFpsText').textContent = 'AI GUARD READY';
+        document.getElementById('faceBracketBox').className = 'face-bracket-box';
+        logEvent('Front Camera stopped.');
+      }
+    }
+
+    async function startDetectionLoop() {
+      const video = document.getElementById('webcamElement');
+      while (cameraActive) {
+        if (video.readyState >= 2 && faceMeshInstance) {
+          try {
+            await faceMeshInstance.send({ image: video });
+          } catch(e) {
+            console.warn('FaceMesh frame skipped:', e);
+          }
+        }
+        await new Promise(r => requestAnimationFrame(r));
+      }
+    }
+
+    // --- ELEGANT MINIMALIST STATUS UPDATE ---
+    function updateDriverStatus(state) {
+      if (state) currentDriverState = state;
+      const dict = i18n[currentLang] || i18n.en;
+      const card = document.getElementById('driverStatusCard');
+      const title = document.getElementById('driverStatusTitle');
+      const sub = document.getElementById('driverStatusSubtitle');
+      const badge = document.getElementById('sessionIncidentsBadge');
+      const totalIncidents = microsleepCount + yawnCount + headDropCount;
+      badge.textContent = dict.incidentsLabel.replace('{n}', totalIncidents);
+
+      card.classList.remove('state-yawn', 'state-drowsy');
+
+      if (currentDriverState === 'focused') {
+        title.textContent = dict.focusedAlert;
+        sub.textContent = dict.focusedSub;
+      } else if (currentDriverState === 'yawning') {
+        card.classList.add('state-yawn');
+        title.textContent = dict.yawnWarning;
+        sub.textContent = dict.yawnSub;
+      } else if (currentDriverState === 'drowsy') {
+        card.classList.add('state-drowsy');
+        title.textContent = dict.drowsyWarning;
+        sub.textContent = dict.drowsySub;
+      } else if (currentDriverState === 'headdrop') {
+        card.classList.add('state-drowsy');
+        title.textContent = dict.headDropWarning;
+        sub.textContent = dict.headDropSub;
+      } else if (currentDriverState === 'noface') {
+        title.textContent = dict.noFaceWarning;
+        sub.textContent = dict.noFaceSub;
+      }
+    }
+
+    // --- PROCESS FACIAL LANDMARKS (CLEAN MINIMALIST DRAWING) ---
+    function onFaceMeshResults(results) {
+      const canvas = document.getElementById('meshCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      frameCounter++;
+      if (Date.now() - lastFpsTime >= 1000) {
+        document.getElementById('cvFpsText').textContent = 'AI GUARD ' + frameCounter + ' FPS';
+        frameCounter = 0;
+        lastFpsTime = Date.now();
+      }
+
+      const bracketBox = document.getElementById('faceBracketBox');
+      const dict = i18n[currentLang] || i18n.en;
+
+      if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+        bracketBox.className = 'face-bracket-box';
+        updateDriverStatus('noface');
+        return;
+      }
+
+      const lm = results.multiFaceLandmarks[0];
+      bracketBox.className = 'face-bracket-box tracking';
+
+      // 1. EAR (Eye Aspect Ratio)
+      const leftEar = calculateEAR(lm, [33, 160, 158, 133, 153, 144]);
+      const rightEar = calculateEAR(lm, [362, 385, 387, 263, 373, 380]);
+      const currentEar = (leftEar + rightEar) / 2.0;
+
+      // 2. MAR (Mouth Aspect Ratio) - 0.48 threshold
+      const currentMar = calculateMAR(lm);
+
+      // 3. Accurate Head Pitch (Nodding down detection)
+      const foreheadY = lm[10].y;
+      const noseY = lm[1].y;
+      const chinY = lm[152].y;
+      const upperFaceH = Math.max(0.01, noseY - foreheadY);
+      const lowerFaceH = Math.max(0.01, chinY - noseY);
+      const pitchRatio = lowerFaceH / upperFaceH;
+      const pitchDeg = Math.round((pitchRatio - 1.0) * 45);
+
+      // --- SUBTLE, FUTURISTIC IRIS & EYE TRACKING DOTS (ZERO CLUTTER) ---
+      const eyeClosed = currentEar < 0.21;
+      
+      // Draw minimal, elegant glowing iris points
+      if (lm[468] && lm[473]) {
+        ctx.fillStyle = eyeClosed ? '#EF4444' : '#22C55E';
+        drawGlowCircle(ctx, canvas, lm[468], 4, eyeClosed ? '#EF4444' : '#22C55E');
+        drawGlowCircle(ctx, canvas, lm[473], 4, eyeClosed ? '#EF4444' : '#22C55E');
+      }
+
+      // Draw subtle eye corner dots
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      [33, 133, 362, 263].forEach(idx => {
+        if (lm[idx]) drawCircle(ctx, canvas, lm[idx], 2);
+      });
+
+      // --- FATIGUE DETECTION ALGORITHM & BUFFER ---
+      const now = Date.now();
+      const inCooldown = now < potholeCooldownUntil;
+      const isHeadDropped = pitchDeg < -12 || pitchRatio < 0.75;
+      const isYawning = currentMar > 0.48;
+
+      // 1. Head Drop / Nodding Off Detection
+      if (isHeadDropped && isArmed && !inCooldown) {
+        bracketBox.className = 'face-bracket-box alarm';
+        updateDriverStatus('headdrop');
+
+        if (!headDropStartTime) headDropStartTime = now;
+        const dropDur = now - headDropStartTime;
+
+        if (dropDur >= 1000 && !isLevel2AlarmActive) {
+          isLevel2AlarmActive = true;
+          headDropCount++;
+          triggerEmergencyModal(dict.criticalHeadDropTitle);
+          logEvent('LEVEL 2 EMERGENCY: Head Drop detected (>1.0s). Incident #' + headDropCount);
+        }
+      } else {
+        headDropStartTime = null;
+      }
+
+      // 2. Yawn Detection (1.0s Duration & Escalation at 2 and 4+ Yawns)
+      if (isYawning && isArmed && !inCooldown) {
+        bracketBox.className = 'face-bracket-box yawning';
+        updateDriverStatus('yawning');
+
+        if (!yawnStartTime) yawnStartTime = now;
+        const yawnDur = now - yawnStartTime;
+
+        if (yawnDur >= 1000 && !yawnCounted) {
+          yawnCounted = true;
+          yawnCount++;
+          playWarningChime();
+          logEvent('LEVEL 1 ALERT: Yawn detected (' + (yawnDur/1000).toFixed(1) + 's). Total: ' + yawnCount);
+
+          if (yawnCount >= 4 && !isLevel2AlarmActive) {
+            triggerEmergencyModal(dict.criticalYawnsTitle);
+            logEvent('LEVEL 2 EMERGENCY: Excessive yawns (' + yawnCount + '). Buzzer triggered!');
+          }
+        }
+      } else {
+        if (currentMar < 0.40) {
+          yawnStartTime = null;
+          yawnCounted = false;
+        }
+      }
+
+      // 3. Eye Closure / Microsleep Detection (1.2s threshold)
+      if (eyeClosed && isArmed && !inCooldown) {
+        bracketBox.className = 'face-bracket-box alarm';
+        updateDriverStatus('drowsy');
+
+        if (!eyeClosedStartTime) eyeClosedStartTime = now;
+        const closedDur = now - eyeClosedStartTime;
+        const pct = Math.min(100, (closedDur / 1200) * 100);
+
+        document.getElementById('closureLineFill').style.width = pct + '%';
+        if (pct > 70) {
+          document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
+        }
+
+        if (closedDur >= 1200 && !isLevel2AlarmActive) {
+          isLevel2AlarmActive = true;
+          microsleepCount++;
+          triggerEmergencyModal(dict.criticalMicrosleepTitle);
+          logEvent('LEVEL 2 EMERGENCY: Microsleep confirmed (>1.2s). Incident #' + microsleepCount);
+        }
+      } else {
+        eyeClosedStartTime = null;
+
+        if (!isLevel2AlarmActive) {
+          document.getElementById('closureLineFill').style.width = '0%';
+          document.getElementById('closureLineFill').style.backgroundColor = 'var(--safety-orange)';
+        }
+
+        if (!isHeadDropped && !isYawning) {
+          updateDriverStatus('focused');
+        }
+
+        if (isLevel2AlarmActive) {
+          if (!eyeOpenContinuousStart) eyeOpenContinuousStart = now;
+          if (now - eyeOpenContinuousStart >= 2000) {
+            logEvent('Driver sustained open eyes for 2.0s. Auto-disarming Level 2 siren.');
+            dismissEmergencyAlert();
+          }
+        } else {
+          eyeOpenContinuousStart = null;
+        }
+      }
+    }
+
+    function drawGlowCircle(ctx, canvas, point, r, color) {
+      ctx.save();
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = color;
+      ctx.beginPath();
+      ctx.arc(point.x * canvas.width, point.y * canvas.height, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawCircle(ctx, canvas, point, r) {
+      ctx.beginPath();
+      ctx.arc(point.x * canvas.width, point.y * canvas.height, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // --- ALARM TRIGGERS & DISARM ---
+    function triggerEmergencyModal(reason) {
+      isLevel2AlarmActive = true;
+      const modal = document.getElementById('emergencyModal');
+      const bracketBox = document.getElementById('faceBracketBox');
+      const dict = i18n[currentLang] || i18n.en;
+      modal.style.display = 'flex';
+      bracketBox.className = 'face-bracket-box alarm';
+      if (reason) {
+        document.getElementById('alertTitleText').textContent = reason;
+        document.getElementById('alertSubtitleText').textContent = dict.disarmText;
+      }
+      playEmergencyBuzzer();
+    }
+
+    function dismissEmergencyAlert() {
+      isLevel2AlarmActive = false;
+      const modal = document.getElementById('emergencyModal');
+      const bracketBox = document.getElementById('faceBracketBox');
+      modal.style.display = 'none';
+      bracketBox.className = 'face-bracket-box tracking';
+      stopEmergencyBuzzer();
+
+      document.getElementById('closureLineFill').style.width = '0%';
+      document.getElementById('closureLineFill').style.backgroundColor = 'var(--safety-orange)';
+      eyeClosedStartTime = null;
+      eyeOpenContinuousStart = null;
+      headDropStartTime = null;
+      updateDriverStatus('focused');
+      logEvent('Emergency alert disarmed by driver confirmation.');
+    }
+
+    function toggleFullscreenCam() {
+      const card = document.getElementById('cameraViewport');
+      isFullscreenCam = !isFullscreenCam;
+      if (isFullscreenCam) {
+        card.classList.add('fullscreen-mode');
+      } else {
+        card.classList.remove('fullscreen-mode');
+      }
+    }
+
+    function calculateSafetyScore() {
+      const penalty = (microsleepCount * 25) + (yawnCount * 5) + (headDropCount * 15);
+      const score = Math.max(20, 100 - penalty);
+
+      document.getElementById('summaryScoreNum').textContent = score;
+      document.getElementById('summaryMicrosleeps').textContent = microsleepCount;
+      document.getElementById('summaryYawns').textContent = yawnCount;
+      document.getElementById('summaryHeadDrops').textContent = headDropCount;
+
+      const badge = document.getElementById('summaryScoreBadge');
+      const dict = i18n[currentLang] || i18n.en;
+      if (score >= 85) {
+        badge.textContent = dict.excellentScore;
+        badge.style.color = 'var(--status-green)';
+        badge.style.borderColor = '#BBF7D0';
+        badge.style.background = 'var(--status-green-light)';
+      } else if (score >= 60) {
+        badge.textContent = dict.moderateScore;
+        badge.style.color = 'var(--status-amber)';
+        badge.style.borderColor = '#FDE68A';
+        badge.style.background = 'var(--status-amber-light)';
+      } else {
+        badge.textContent = dict.highRiskScore;
+        badge.style.color = 'var(--alert-red)';
+        badge.style.borderColor = 'var(--alert-red-border)';
+        badge.style.background = 'var(--alert-red-light)';
+      }
+    }
+  </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync(path.join(__dirname, '..', 'index.html'), htmlContent, 'utf8');
+fs.writeFileSync(path.join(__dirname, '..', 'web', 'index.html'), htmlContent, 'utf8');
+console.log('Successfully written clean minimalist automotive HUD index.html and web/index.html');
