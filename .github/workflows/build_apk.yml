@@ -45,7 +45,7 @@ jobs:
         run: |
           flutter build apk --release --no-tree-shake-icons || {
             echo "::error::Flutter build failed. Running Gradle directly for detailed stacktrace..."
-            cd android && ./gradlew assembleRelease --stacktrace | tail -n 120
+            cd android && ./gradlew assembleRelease --stacktrace
             exit 1
           }
 

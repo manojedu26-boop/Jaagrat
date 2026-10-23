@@ -17,7 +17,7 @@ dependencies:
 
   # Computer Vision & Hardware Sensors
   camera: ^0.11.0+2
-  google_mlkit_face_mesh_detection: ^0.1.0
+  google_mlkit_face_mesh_detection: ^0.6.1
   sensors_plus: ^6.0.1
   geolocator: ^13.0.1
   wakelock_plus: ^1.2.8

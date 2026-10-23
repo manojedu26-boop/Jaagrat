@@ -8,6 +8,8 @@ import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detectio
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../services/audio_alert_manager.dart';
+import '../services/telemetry_service.dart';
+import '../models/fatigue_event.dart';
 
 /// Centralized Hardware, Sensor, and Computer Vision Controller for Jaagrat.
 /// Strictly on-device processing at 15 FPS / 480p VGA.
@@ -454,20 +456,21 @@ class DriverMonitorController extends ChangeNotifier {
         );
       } catch (_) {}
 
-      await FirebaseFirestore.instance.collection('fatigue_events').add({
-        'vehicleId': vehicleId,
-        'fleetId': fleetId,
-        'alertLevel': 3,
-        'reason': triggerReason,
-        'speedKmH': _currentSpeed,
-        'timestamp': FieldValue.serverTimestamp(),
-        'location': position != null
-            ? GeoPoint(position.latitude, position.longitude)
-            : null,
-      });
-      debugPrint('[DriverMonitorController] Level 3 telemetry event synced.');
+      final telemetry = TelemetryService();
+      await telemetry.logFatigueEvent(FatigueEvent(
+        driverId: 'DRIVER_ACTIVE',
+        vehicleId: vehicleId,
+        fleetId: fleetId,
+        timestamp: DateTime.now(),
+        alertType: FatigueAlertType.level2Microsleep,
+        speedKmh: _currentSpeed,
+        latitude: position?.latitude ?? 0.0,
+        longitude: position?.longitude ?? 0.0,
+        earScore: _currentEar,
+      ));
+      debugPrint('[DriverMonitorController] Level 3 telemetry queued/synced via TelemetryService.');
     } catch (e) {
-      debugPrint('[DriverMonitorController] Level 3 telemetry offline: $e');
+      debugPrint('[DriverMonitorController] Level 3 telemetry dispatch notice: $e');
     }
   }
 
