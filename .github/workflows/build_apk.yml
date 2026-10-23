@@ -30,10 +30,13 @@ jobs:
       - name: Generate Android Platform Files
         run: |
           cp pubspec.yaml /tmp/pubspec_custom.yaml
+          cp -r lib /tmp/backup_lib
           mkdir -p /tmp/backup_android
           cp android/app/src/main/AndroidManifest.xml /tmp/backup_android/AndroidManifest.xml
           flutter create --overwrite --project-name jaagrat --platforms=android --org com.jaagrat .
           cp /tmp/pubspec_custom.yaml pubspec.yaml
+          rm -rf lib && cp -r /tmp/backup_lib lib
+          rm -rf test
           cp /tmp/backup_android/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
           # Ensure minSdk is explicitly 21 for ML Kit Face Mesh and Firebase compatibility
           if [ -f android/app/build.gradle.kts ]; then
