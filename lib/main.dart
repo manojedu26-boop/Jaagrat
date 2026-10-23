@@ -10,6 +10,8 @@ import 'core/services/audio_alert_service.dart';
 import 'core/services/vibration_service.dart';
 import 'core/services/telemetry_service.dart';
 import 'core/services/driver_monitor_service.dart';
+import 'core/services/audio_alert_manager.dart';
+import 'core/controllers/driver_monitor_controller.dart';
 import 'ui/screens/screen_language.dart';
 import 'ui/screens/screen_active_drive.dart';
 
@@ -52,10 +54,19 @@ void main() async {
     telemetry: telemetryService,
   );
 
+  final audioAlertManager = AudioAlertManager();
+  final savedProfile = storageService.getDriverProfile();
+
+  final driverMonitorController = DriverMonitorController(
+    alertManager: audioAlertManager,
+    vehicleId: savedProfile.vehicleNumber.isNotEmpty ? savedProfile.vehicleNumber : 'KA-01-AB-1234',
+    fleetId: savedProfile.fleetCode.isNotEmpty ? savedProfile.fleetCode : 'DEFAULT_FLEET',
+    languageCode: storageService.getSelectedLanguage(),
+  );
+
   // If driver has already logged in previously, restore profile directly
   final bool hasCompletedOnboarding = storageService.isSetupComplete();
   if (hasCompletedOnboarding) {
-    final savedProfile = storageService.getDriverProfile();
     driverMonitorService.updateProfile(savedProfile);
   }
 
@@ -68,6 +79,8 @@ void main() async {
         Provider<VibrationService>.value(value: vibrationService),
         Provider<TelemetryService>.value(value: telemetryService),
         ChangeNotifierProvider<DriverMonitorService>.value(value: driverMonitorService),
+        Provider<AudioAlertManager>.value(value: audioAlertManager),
+        ChangeNotifierProvider<DriverMonitorController>.value(value: driverMonitorController),
       ],
       child: JaagratApp(isLoggedIn: hasCompletedOnboarding),
     ),
@@ -85,8 +98,6 @@ class JaagratApp extends StatelessWidget {
       title: 'Jaagrat',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      // If already logged in: bypass login and open Driver Monitor directly!
-      // If first-time user: start one-time setup
       home: isLoggedIn ? const ScreenActiveDrive() : const ScreenLanguage(),
     );
   }

@@ -3,35 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_strings.dart';
-import '../../core/services/sensor_guard_service.dart';
-import '../../core/services/driver_monitor_service.dart';
+import '../../core/controllers/driver_monitor_controller.dart';
+import '../../core/services/audio_alert_manager.dart';
 import '../widgets/status_pill.dart';
 import '../widgets/alert_modal_overlay.dart';
 import '../widgets/long_press_button.dart';
 import 'screen_language.dart';
 
 class ScreenActiveDrive extends StatefulWidget {
-  final CameraController? cameraController;
-  final CameraDescription? cameraDescription;
-
-  const ScreenActiveDrive({
-    super.key,
-    this.cameraController,
-    this.cameraDescription,
-  });
+  const ScreenActiveDrive({super.key});
 
   @override
   State<ScreenActiveDrive> createState() => _ScreenActiveDriveState();
 }
 
 class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
-  CameraController? _cameraController;
-  CameraDescription? _frontCamera;
-  bool _isCameraActive = false;
-  bool _isInitializingCamera = false;
-
   late Stopwatch _tripStopwatch;
   Timer? _tickerTimer;
   String _formattedDuration = '00:00:00';
@@ -39,15 +27,12 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
   @override
   void initState() {
     super.initState();
-    // 1. Keep phone screen on while driving
+    // 1. Keep phone screen and CPU alive on dashboard mount
     WakelockPlus.enable();
 
-    // 2. Start GPS Speed & Pothole Shock sensors
-    context.read<SensorGuardService>().startMonitoring();
-
-    // 3. Start trip elapsed timer
+    // 2. Start trip duration counter
     _tripStopwatch = Stopwatch()..start();
-    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       final elapsed = _tripStopwatch.elapsed;
       setState(() {
@@ -59,79 +44,26 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
       });
     });
 
-    // 4. Auto-initialize front camera if provided or initialize fresh
-    if (widget.cameraController != null && widget.cameraController!.value.isInitialized) {
-      _cameraController = widget.cameraController;
-      _frontCamera = widget.cameraDescription;
-      _isCameraActive = true;
-      _startImageStream();
+    // 3. Auto-initialize front camera stream on launch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = context.read<DriverMonitorController>();
+      if (!controller.isCameraInitialized) {
+        controller.initializeCamera();
+      }
+    });
+  }
+
+  void _onToggleCamera() {
+    final controller = context.read<DriverMonitorController>();
+    if (controller.isCameraInitialized) {
+      controller.stopCamera();
     } else {
-      _initFrontCamera();
-    }
-  }
-
-  Future<void> _initFrontCamera() async {
-    setState(() => _isInitializingCamera = true);
-    try {
-      final cameras = await availableCameras();
-      _frontCamera = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.front,
-        orElse: () => cameras.first,
-      );
-
-      _cameraController = CameraController(
-        _frontCamera!,
-        ResolutionPreset.medium, // 480p is optimal for cool thermals and 15 FPS inference
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.nv21,
-      );
-
-      await _cameraController!.initialize();
-      if (!mounted) return;
-
-      setState(() {
-        _isCameraActive = true;
-        _isInitializingCamera = false;
-      });
-
-      _startImageStream();
-    } catch (e) {
-      print('[ScreenActiveDrive] Front camera init notice: $e');
-      if (mounted) {
-        setState(() => _isInitializingCamera = false);
-      }
-    }
-  }
-
-  void _startImageStream() {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
-    final monitorService = context.read<DriverMonitorService>();
-
-    if (!_cameraController!.value.isStreamingImages && _frontCamera != null) {
-      _cameraController!.startImageStream((CameraImage image) {
-        monitorService.processCameraImage(image, _frontCamera!);
-      });
-    }
-  }
-
-  Future<void> _toggleCamera() async {
-    if (_isCameraActive) {
-      if (_cameraController != null && _cameraController!.value.isStreamingImages) {
-        await _cameraController!.stopImageStream();
-      }
-      setState(() => _isCameraActive = false);
-    } else {
-      if (_cameraController != null && _cameraController!.value.isInitialized) {
-        _startImageStream();
-        setState(() => _isCameraActive = true);
-      } else {
-        await _initFrontCamera();
-      }
+      controller.initializeCamera();
     }
   }
 
   void _onDismissAlert() {
-    context.read<DriverMonitorService>().dismissAlert();
+    context.read<DriverMonitorController>().dismissAlert();
   }
 
   void _onEndTrip() async {
@@ -139,18 +71,9 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
     _tickerTimer?.cancel();
     WakelockPlus.disable();
 
-    final monitorService = context.read<DriverMonitorService>();
-    monitorService.dismissAlert();
-    context.read<SensorGuardService>().stopMonitoring();
-
-    try {
-      if (_cameraController != null && _cameraController!.value.isStreamingImages) {
-        await _cameraController!.stopImageStream();
-      }
-      await _cameraController?.dispose();
-    } catch (e) {
-      print('[ScreenActiveDrive] Camera dispose notice: $e');
-    }
+    final controller = context.read<DriverMonitorController>();
+    controller.dismissAlert();
+    await controller.stopCamera();
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -164,36 +87,29 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
     _tripStopwatch.stop();
     _tickerTimer?.cancel();
     WakelockPlus.disable();
-    _cameraController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final sensorGuard = context.watch<SensorGuardService>();
-    final monitor = context.watch<DriverMonitorService>();
+    final controller = context.watch<DriverMonitorController>();
 
-    // Determine current status indicator
-    final String statusText;
+    // Determine status styling
+    final bool isEmergency = controller.alertLevel == AlertLevel.emergency;
+    final bool isWarning = controller.alertLevel == AlertLevel.warning;
+
     final Color statusColor;
-
-    if (sensorGuard.isShockActive) {
-      statusText = 'ROAD BUMP (SUPPRESSED)';
-      statusColor = AppColors.standbyAmber;
-    } else if (!sensorGuard.isArmedForAlerts) {
-      statusText = 'STANDBY (<10 KM/H)';
+    if (isEmergency) {
+      statusColor = AppColors.criticalRed;
+    } else if (isWarning || !controller.isArmed) {
       statusColor = AppColors.standbyAmber;
     } else {
-      statusText = 'ARMED & MONITORING';
       statusColor = AppColors.activeGreen;
     }
 
-    final double speedKmh = sensorGuard.currentSpeedKmh;
-
     return WillPopScope(
-      onWillPop: () async => false, // Prevent accidental back gestures while driving
+      onWillPop: () async => false, // Prevent accidental back gesture while driving
       child: Scaffold(
-        // Clean white driver-friendly background
         backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -222,7 +138,7 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                   const Icon(Icons.speed_rounded, size: 16, color: AppColors.primaryButton),
                   const SizedBox(width: 6),
                   Text(
-                    '${speedKmh.toStringAsFixed(0)} km/h',
+                    '${controller.currentSpeed.toStringAsFixed(0)} km/h',
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
@@ -247,11 +163,11 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         StatusPill(
-                          statusText: statusText,
+                          statusText: controller.debugStatus ?? 'ARMED & MONITORING',
                           dotColor: statusColor,
                         ),
                         Text(
-                          'Trip: $_formattedDuration',
+                          'Shift: $_formattedDuration',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -275,16 +191,18 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            if (_isCameraActive && _cameraController != null && _cameraController!.value.isInitialized)
+                            if (controller.isCameraInitialized &&
+                                controller.cameraController != null &&
+                                controller.cameraController!.value.isInitialized)
                               SizedBox.expand(
-                                child: CameraPreview(_cameraController!),
+                                child: CameraPreview(controller.cameraController!),
                               )
                             else
                               Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.videocam_off_outlined,
                                       size: 54,
                                       color: AppColors.textTertiary,
@@ -311,7 +229,7 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                               ),
 
                             // Oval Face Guide Overlay
-                            if (_isCameraActive)
+                            if (controller.isCameraInitialized)
                               Container(
                                 width: 200,
                                 height: 260,
@@ -319,8 +237,8 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                                   shape: BoxShape.rectangle,
                                   borderRadius: BorderRadius.circular(100),
                                   border: Border.all(
-                                    color: monitor.isFaceDetected
-                                        ? AppColors.activeGreen.withOpacity(0.8)
+                                    color: controller.isFaceDetected
+                                        ? AppColors.activeGreen.withOpacity(0.85)
                                         : Colors.white.withOpacity(0.6),
                                     width: 2.5,
                                   ),
@@ -332,15 +250,15 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                               top: 12,
                               right: 12,
                               child: ElevatedButton.icon(
-                                onPressed: _toggleCamera,
+                                onPressed: _onToggleCamera,
                                 icon: Icon(
-                                  _isCameraActive ? Icons.videocam_off : Icons.videocam,
+                                  controller.isCameraInitialized ? Icons.videocam_off : Icons.videocam,
                                   size: 16,
                                 ),
-                                label: Text(_isCameraActive ? 'Stop' : 'Start Camera'),
+                                label: Text(controller.isCameraInitialized ? 'Stop' : 'Start Camera'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isCameraActive ? Colors.white : AppColors.primaryButton,
-                                  foregroundColor: _isCameraActive ? Colors.black : Colors.white,
+                                  backgroundColor: controller.isCameraInitialized ? Colors.white : AppColors.primaryButton,
+                                  foregroundColor: controller.isCameraInitialized ? Colors.black : Colors.white,
                                   elevation: 2,
                                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -375,13 +293,13 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                                 ),
                               ),
                               Text(
-                                monitor.currentEar < monitor.calibratedThreshold
-                                    ? '⚠️ CLOSED (${monitor.currentEar.toStringAsFixed(2)})'
-                                    : 'OPEN (${monitor.currentEar.toStringAsFixed(2)})',
+                                controller.currentEar < 0.20
+                                    ? '⚠️ CLOSED (${controller.currentEar.toStringAsFixed(2)})'
+                                    : 'OPEN (${controller.currentEar.toStringAsFixed(2)})',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
-                                  color: monitor.currentEar < monitor.calibratedThreshold
+                                  color: controller.currentEar < 0.20
                                       ? AppColors.criticalRed
                                       : AppColors.activeGreen,
                                 ),
@@ -401,13 +319,37 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
                                 ),
                               ),
                               Text(
-                                '${monitor.consecutiveClosedFrames} / 18 frames',
+                                '${controller.consecutiveClosedFrames} / 18 frames',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: monitor.consecutiveClosedFrames > 8
+                                  color: controller.consecutiveClosedFrames > 8
                                       ? AppColors.criticalRed
                                       : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '60s Fatigue Trend (PERCLOS):',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                '${(controller.perclosScore * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: controller.perclosScore > 0.18
+                                      ? AppColors.criticalRed
+                                      : AppColors.activeGreen,
                                 ),
                               ),
                             ],
@@ -426,9 +368,9 @@ class _ScreenActiveDriveState extends State<ScreenActiveDrive> {
               ),
 
               // 5. Emergency Full-Screen Siren Overlay (Visible only when microsleep or severe alert triggers)
-              if (monitor.isAlertActive)
+              if (isEmergency)
                 AlertModalOverlay(
-                  alertLevel: monitor.currentAlertLevel,
+                  alertLevel: AlertLevel.level2Microsleep,
                   onDismiss: _onDismissAlert,
                 ),
             ],
