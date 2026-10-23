@@ -50,18 +50,22 @@ jobs:
 
       - name: Build Android Release APK
         run: |
-          set +e
-          flutter build apk --release --no-tree-shake-icons -v > build.log 2>&1
-          BUILD_EXIT=$?
-          if [ $BUILD_EXIT -ne 0 ]; then
-            echo "## ❌ Android Build Failed (Exit Code: $BUILD_EXIT)" >> $GITHUB_STEP_SUMMARY
-            echo "### Last 150 Lines of Build Log" >> $GITHUB_STEP_SUMMARY
+          set -o pipefail
+          flutter build apk --release --no-tree-shake-icons 2>&1 | tee build.log
+
+      - name: Publish Diagnostics to Step Summary
+        if: always()
+        run: |
+          if [ -f build.log ]; then
+            echo "## 📋 Android Build Diagnostics" >> $GITHUB_STEP_SUMMARY
+            echo "### Extracted Failures & Errors:" >> $GITHUB_STEP_SUMMARY
             echo '```text' >> $GITHUB_STEP_SUMMARY
-            tail -n 150 build.log >> $GITHUB_STEP_SUMMARY
+            grep -E "FAILURE:|error:|exception|Caused by:" -C 2 build.log | head -n 80 >> $GITHUB_STEP_SUMMARY || true
             echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $BUILD_EXIT
-          else
-            echo "## ✅ Android Release APK Generated Successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "### Last 100 Lines of Build Log:" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Verify APK Generation
