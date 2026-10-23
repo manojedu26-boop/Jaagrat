@@ -43,8 +43,11 @@ jobs:
 
       - name: Build Android Release APK
         run: |
-          set -o pipefail
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons || {
+            echo "::error::Flutter build failed. Running Gradle directly for detailed stacktrace..."
+            cd android && ./gradlew assembleRelease --stacktrace | tail -n 120
+            exit 1
+          }
 
       - name: Verify APK Generation
         run: ls -la build/app/outputs/flutter-apk/
