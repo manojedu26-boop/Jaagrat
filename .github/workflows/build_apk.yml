@@ -23,13 +23,22 @@ jobs:
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.x'
           channel: 'stable'
           cache: true
 
-      - name: Ensure Android Build Tools
+      - name: Generate Android Platform Files
         run: |
-          flutter create . --platforms=android --org com.jaagrat
+          cp pubspec.yaml /tmp/pubspec_custom.yaml
+          mkdir -p /tmp/backup_android
+          cp android/app/src/main/AndroidManifest.xml /tmp/backup_android/AndroidManifest.xml
+          flutter create --overwrite --project-name jaagrat --platforms=android --org com.jaagrat .
+          cp /tmp/pubspec_custom.yaml pubspec.yaml
+          cp /tmp/backup_android/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+
+      - name: Configure Android Build & MinSdk
+        run: |
+          sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
 
       - name: Install Dependencies
         run: flutter pub get
