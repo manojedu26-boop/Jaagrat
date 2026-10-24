@@ -2616,8 +2616,8 @@
             <span style="font-size:10px; color:var(--text-muted);">Triggers Level 2 Cockpit Siren</span>
           </button>
           <button class="btn-sim-alert" onclick="simulateHeadDrop()">
-            <strong style="color:var(--alert-red);">💤 Test Head Drop (0.85s)</strong>
-            <span style="font-size:10px; color:var(--text-muted);">0.85s Nodding-off buzzer alarm</span>
+            <strong style="color:var(--alert-red);">💤 Test Head Drop (1.3s)</strong>
+            <span style="font-size:10px; color:var(--text-muted);">1.3s Head bend buzzer alarm</span>
           </button>
           <button class="btn-sim-alert" onclick="simulateYawn()">
             <strong style="color:var(--status-amber);">🥱 Test Yawn Escalation</strong>
@@ -3706,7 +3706,7 @@
 
     // Detection Thresholds (strictly calibrated)
     const MICROSLEEP_MS = 1200; // strictly 1.20 seconds eye closure
-    const HEADDROP_MS = 850;   // Snappy 0.85s head drop / nodding response   // strictly 1.50 seconds head drop
+    const HEADDROP_MS = 1300;  // 1.30s sustained head bend required before siren
     const YAWN_MAR_THRESHOLD = 0.48;
 
     // Timers & Counters
@@ -4782,29 +4782,37 @@
       // 3. ISOTROPIC PIXEL MAR (Mouth Aspect Ratio in True Pixels)
       const currentMar = calculateMAR(lm, w, h);
 
-      // 4. HEAD SHAKE & YAW FILTER
+      // 4. HEAD YAW & SIDE TURN FILTER (Detects looking sideways / checking mirrors)
       const cheekSpan = Math.hypot((lm[454].x - lm[234].x) * w, (lm[454].y - lm[234].y) * h);
       const leftDist = Math.hypot((lm[1].x - lm[234].x) * w, (lm[1].y - lm[234].y) * h);
       const rightDist = Math.hypot((lm[454].x - lm[1].x) * w, (lm[454].y - lm[1].y) * h);
-      const yawAsymmetry = Math.abs(leftDist - rightDist) / Math.max(1.0, cheekSpan);
-      const isShakingHead = yawAsymmetry > 0.38;
+      const totalCheekDist = Math.max(1.0, leftDist + rightDist);
+      const yawAsymmetry = Math.abs(leftDist - rightDist) / totalCheekDist;
 
-// 5. ROLL TILT FILTER (Tolerate natural nodding off head lean up to 32 degrees)
+      // Horizontal offset of nose tip relative to eyes center
+      const eyeMidX = (lm[33].x + lm[263].x) / 2.0;
+      const eyeSpan = Math.hypot((lm[263].x - lm[33].x) * w, (lm[263].y - lm[33].y) * h);
+      const noseHorizontalOffset = Math.abs(lm[1].x - eyeMidX) * w / Math.max(1.0, eyeSpan);
+
+      // Sensitive side turn detection: yaw asymmetry > 0.16 OR nose horizontal shift > 0.13
+      const isTurningHeadSideways = (yawAsymmetry > 0.16) || (noseHorizontalOffset > 0.13);
+
+      // 5. ROLL TILT FILTER (Excessive ear-to-shoulder tilt)
       const eyeDx = (lm[263].x - lm[33].x) * w;
       const eyeDy = (lm[263].y - lm[33].y) * h;
       const rollAngle = Math.abs(Math.atan2(eyeDy, eyeDx) * 180 / Math.PI);
-      const isTiltingRoll = rollAngle > 32;
+      const isTiltingRoll = rollAngle > 22;
 
       // 6. PITCH & CHIN-DROP (NODDING OFF) DETECTION
       const upperFaceH = Math.hypot((lm[1].x - lm[10].x) * w, (lm[1].y - lm[10].y) * h);
       const lowerFaceH = Math.hypot((lm[152].x - lm[1].x) * w, (lm[152].y - lm[1].y) * h);
       const rawPitchRatio = lowerFaceH / Math.max(1.0, upperFaceH);
 
-      // Fast, responsive exponential moving average (60% weight on current frame for instantaneous response)
-      smoothedPitchRatio = (smoothedPitchRatio * 0.40) + (rawPitchRatio * 0.60);
+      // Smooth moving average (70% previous, 30% current frame) to ignore transient twitches
+      smoothedPitchRatio = (smoothedPitchRatio * 0.70) + (rawPitchRatio * 0.30);
 
-      // Highly sensitive head drop: triggers immediately when chin drops or head nods down (< 0.78 ratio)
-      const isGenuineHeadDrop = (smoothedPitchRatio < 0.78) && !isShakingHead && !isTiltingRoll;
+      // Only trigger when the driver genuinely bends their head down (< 0.63) AND is NOT looking sideways
+      const isGenuineHeadDrop = (smoothedPitchRatio < 0.63) && !isTurningHeadSideways && !isTiltingRoll;
 
       // Dynamic baseline calibration for diverse eye shapes
       if (currentEar > 0.22 && currentEar < 0.45) {
@@ -4836,8 +4844,8 @@
         cMar.className = isYawning ? 'metric-chip warning' : 'metric-chip';
       }
       if (cPitch) {
-        cPitch.textContent = isGenuineHeadDrop ? 'HEAD DROP!' : (isShakingHead ? 'MIRROR CHECK' : 'POSTURE: OK');
-        cPitch.className = isGenuineHeadDrop ? 'metric-chip alert' : 'metric-chip';
+        cPitch.textContent = isGenuineHeadDrop ? 'HEAD BENT DOWN!' : (isTurningHeadSideways ? 'SIDE LOOK / MIRROR' : 'POSTURE: OK');
+        cPitch.className = isGenuineHeadDrop ? 'metric-chip alert' : (isTurningHeadSideways ? 'metric-chip warning' : 'metric-chip');
       }
 
       // --- FATIGUE DETECTION BUFFERS ---
@@ -4861,12 +4869,12 @@
           headDropCount++;
           document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
           triggerEmergencyModal(dict.criticalHeadDropTitle);
-          logEvent('LEVEL 2 EMERGENCY: Head Drop / Nodding confirmed (>0.85s). Incident #' + headDropCount);
-          syncFleetEmergency('Head Drop (>0.85s)');
+          logEvent('LEVEL 2 EMERGENCY: Head Drop / Nodding confirmed (>1.3s). Incident #' + headDropCount);
+          syncFleetEmergency('Head Drop (>1.3s)');
         }
       } else {
         headDropStartTime = null;
-        if (smoothedPitchRatio > 0.85) {
+        if (smoothedPitchRatio > 0.72) {
           headDropLatched = false;
         }
       }
