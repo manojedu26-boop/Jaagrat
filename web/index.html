@@ -5593,11 +5593,10 @@
       }
     });
 
-    // --- AI HIGHWAY RADIO: 1-MINUTE CONTINUOUS MIDNIGHT COMPANION ---
+    // --- AI HIGHWAY RADIO: CONTINUOUS 1-MINUTE MIDNIGHT COMPANION ---
     let isRadioPlaying = false;
+    let radioHeadlineTicker = null;
     let radioKeepAlive = null;
-    let radioSentenceIdx = 0;
-    let radioSentences = [];
 
     // Continuous ~1-minute broadcast bulletins tailored with real-time highway corridors, cricket headlines, night weather, and fatigue guidance
     const radioNewsBulletins = {
@@ -5643,8 +5642,8 @@
         "దేవనహళ్లి టోల్ మరియు అనంతపురం బైపాస్ వద్ద ఫాస్టాగ్ లైన్లు రద్దీ లేకుండా వేగంగా పనిచేస్తున్నాయి.",
         "నేటి క్రీడా ముఖ్యాంశాలు: భారత క్రికెట్ జట్టు ఉత్కంఠభరిత పోరులో అద్భుత విజయం సాధించి అభిమానులను ఉర్రూతలూగించింది.",
         "వాతావరణ సమాచారం: ఈ రాత్రి ఉష్ణోగ్రత 22 డిగ్రీల సెల్సియస్, రాత్రిపూట రహదారిపై దృశ్యమానత స్పష్టంగా ఉంది.",
-        "జాగ్రత్ భద్రతా సూచన: రాత్రి వేళ డ్రైవింగ్‌లో నిద్రమత్తు రావడం సహజం. తగినంత నీరు త్రాగండి, ముందున్న వాహనం నుండి సురక్షిత దూరం పాటించండి.",
-        "జాగ్రత్ AI రక్షణ వ్యవస్థ మీతోనే ఉంది. మీ ప్రయాణం సురక్షితంగా సాగాలి!"
+        "జాగ್ರತ್ భద్రతా సూచన: రాత్రి వేళ డ్రైవింగ్‌లో నిద్రమత్తు రావడం సహజం. తగినంత నీరు త్రాగండి, ముందున్న వాహనం నుండి సురక్షిత దూరం పాటించండి.",
+        "జాగ್ರತ್ AI రక్షణ వ్యవస్థ మీతోనే ఉంది. మీ ప్రయాణం సురక్షితంగా సాగాలి!"
       ],
       mr: [
         "नमस्कार रमेश जी! हे जाग्रत 98.4 AI हायवे रेडिओचे मध्यरात्रीचे विशेष बुलेटिन आहे.",
@@ -5707,57 +5706,9 @@
         "আজিৰ খেলৰ বাতৰি: ভাৰতীয় ক্ৰিকেট দলে এক ৰোমাঞ্চকৰ খেলত ঐতিহাসিক জয় লাভ কৰিছে।",
         "বতৰৰ বাতৰি: ৰাতিৰ উষ্ণতা 22 ডিগ্ৰী চেলচিয়াছ আৰু ঘাইপথত দৃষ্টিগোচৰতা অতি স্পষ্ট।",
         "সুৰক্ষা পৰামৰ্শ: দীঘলীয়া ৰাতিৰ যাত্ৰাত পানী খাওক আৰু আগৰ বাহনৰ পৰা ৫০ মিটাৰ দূৰত্ব বজাই ৰাখক।",
-        "জাগ্ৰত এআই সুৰক্ষা আপোনাৰ সৈতে আছে। আপোনাৰ যাত্ৰা শুভ হওক!"
+        "ଜାଗ୍ରତ ଏআই ସୁৰକ୍ଷା ଆପଣଙ୍କ ସହିତ ଅଛି। ଆପଣଙ୍କ ଯାତ୍ରା ଶୁଭ ହେଉ!"
       ]
     };
-
-    function playRadioSentences() {
-      if (!isRadioPlaying) return;
-      if (radioSentenceIdx >= radioSentences.length) {
-        stopHighwayRadio(true);
-        return;
-      }
-
-      const rawText = radioSentences[radioSentenceIdx];
-      const driverName = (localStorage.getItem('jaagrat_driver_name') || 'Ramesh').split(' ')[0];
-      const text = rawText.replace(/ರಮೇಶ್|रमेश|Ramesh/g, driverName);
-
-      const targetLocale = langVoiceMap[currentLang] || 'en-IN';
-      const ut = new SpeechSynthesisUtterance(text);
-      ut.lang = targetLocale;
-      ut.rate = 0.96;
-      ut.pitch = 1.02;
-
-      const voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        const langPrefix = targetLocale.split('-')[0].toLowerCase();
-        const matchedVoice = voices.find(v => {
-          const vLang = (v.lang || '').toLowerCase().replace('_', '-');
-          return vLang === targetLocale.toLowerCase() || vLang.startsWith(langPrefix);
-        });
-        if (matchedVoice) ut.voice = matchedVoice;
-      }
-
-      const subText = document.getElementById('radioSubText');
-      if (subText) {
-        subText.textContent = text.length > 55 ? text.substring(0, 52) + '...' : text;
-      }
-
-      ut.onend = () => {
-        if (!isRadioPlaying) return;
-        radioSentenceIdx++;
-        setTimeout(playRadioSentences, 300);
-      };
-
-      ut.onerror = (e) => {
-        console.warn('Radio playback utterance skipped:', e);
-        if (!isRadioPlaying) return;
-        radioSentenceIdx++;
-        setTimeout(playRadioSentences, 200);
-      };
-
-      window.speechSynthesis.speak(ut);
-    }
 
     function stopHighwayRadio(isFinished = false) {
       if ('speechSynthesis' in window) {
@@ -5767,7 +5718,13 @@
         clearInterval(radioKeepAlive);
         radioKeepAlive = null;
       }
+      if (radioHeadlineTicker) {
+        clearInterval(radioHeadlineTicker);
+        radioHeadlineTicker = null;
+      }
+      window._activeRadioUtterance = null;
       isRadioPlaying = false;
+
       const btn = document.getElementById('btnHighwayRadio');
       const badge = document.getElementById('radioStatusBadge');
       const subText = document.getElementById('radioSubText');
@@ -5803,23 +5760,72 @@
         badge.className = 'radio-live-badge live';
         badge.textContent = '● ON AIR';
       }
-      if (subText) subText.textContent = 'Broadcasting Jaagrat 98.4 FM Road Bulletin...';
 
-      // Keepalive ticker to prevent Chrome speech synthesis background idle pause
+      // 1. Prepare Full 1-Minute Broadcast Text
+      const rawBulletins = radioNewsBulletins[currentLang] || radioNewsBulletins.en;
+      const driverName = (localStorage.getItem('jaagrat_driver_name') || 'Ramesh').split(' ')[0];
+      const fullText = (Array.isArray(rawBulletins) ? rawBulletins.join(' ') : rawBulletins).replace(/ರಮೇಶ್|रमेश|Ramesh/g, driverName);
+
+      // 2. Multilingual Voice Setup with Graceful Fallback
+      const targetLocale = langVoiceMap[currentLang] || 'en-IN';
+      const ut = new SpeechSynthesisUtterance(fullText);
+      ut.lang = targetLocale;
+      ut.rate = 0.94;
+      ut.pitch = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const langPrefix = targetLocale.split('-')[0].toLowerCase();
+        let matchedVoice = voices.find(v => (v.lang || '').toLowerCase().replace('_', '-') === targetLocale.toLowerCase());
+        if (!matchedVoice) {
+          matchedVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith(langPrefix));
+        }
+        if (!matchedVoice && targetLocale !== 'en-IN') {
+          matchedVoice = voices.find(v => (v.lang || '').toLowerCase().includes('in'));
+        }
+        if (matchedVoice) ut.voice = matchedVoice;
+      }
+
+      // CRITICAL: Store on window so V8 Garbage Collection NEVER kills utterance mid-speech!
+      window._activeRadioUtterance = ut;
+
+      // 3. Dynamic Headline Ticker on Cockpit Button while speaking
+      const headlines = Array.isArray(rawBulletins) ? rawBulletins : [fullText];
+      let hIdx = 0;
+      if (subText) subText.textContent = headlines[0].substring(0, 52) + '...';
+
+      if (radioHeadlineTicker) clearInterval(radioHeadlineTicker);
+      radioHeadlineTicker = setInterval(() => {
+        if (!isRadioPlaying) return;
+        hIdx = (hIdx + 1) % headlines.length;
+        if (subText) subText.textContent = headlines[hIdx].substring(0, 52) + '...';
+      }, 7500);
+
+      // 4. Utterance Events
+      ut.onend = () => {
+        stopHighwayRadio(true);
+      };
+
+      ut.onerror = (e) => {
+        console.warn('Radio playback utterance notice:', e);
+        if (!window.speechSynthesis.speaking) {
+          stopHighwayRadio(true);
+        }
+      };
+
+      // 5. Keepalive to unfreeze Chrome if backgrounded (NEVER call pause()!)
       if (radioKeepAlive) clearInterval(radioKeepAlive);
       radioKeepAlive = setInterval(() => {
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
+        if (isRadioPlaying && window.speechSynthesis) {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
         }
-      }, 7000);
+      }, 3000);
 
-      const rawBulletins = radioNewsBulletins[currentLang] || radioNewsBulletins.en;
-      radioSentences = Array.isArray(rawBulletins) ? rawBulletins : [rawBulletins];
-      radioSentenceIdx = 0;
-
-      logEvent('RADIO: Broadcasting 1-Minute Live Highway News in ' + currentLang.toUpperCase() + ' (Midnight Fatigue Companion).');
-      playRadioSentences();
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(ut);
+      logEvent('RADIO: Broadcasting continuous 1-Minute Live Highway News in ' + currentLang.toUpperCase() + ' (Midnight Fatigue Companion).');
     }
 
     // --- INSURTECH TELEMATICS MODAL HANDLERS ---
