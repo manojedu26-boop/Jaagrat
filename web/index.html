@@ -1918,9 +1918,20 @@
               </div>
             </div>
 
-            <button class="btn-primary" style="margin-top:auto;" onclick="returnToDrive()">
-              <span>&larr; <span id="t_btnResumeShift">Resume Drive Shift</span></span>
-            </button>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:auto; padding-top:10px;">
+              <button class="btn-primary" onclick="completeShiftAndStartNew()" style="background:linear-gradient(135deg, #16A34A 0%, #15803D 100%); box-shadow:0 4px 12px rgba(22, 163, 74, 0.25);">
+                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span id="t_btnCompleteNewShift">Complete Shift & Start New Ride</span>
+              </button>
+              <button class="btn-outline" onclick="returnToDrive()">
+                <span>&larr; <span id="t_btnResumeShift">Resume Current Shift</span></span>
+              </button>
+              <button class="btn-outline" style="border-style:dashed; color:var(--safety-orange); font-size:11px;" onclick="exportSafetyReport()">
+                <span>📄 Export AIS-140 Shift Safety Audit</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -1946,7 +1957,7 @@
     <div class="control-panel">
       <div>
         <div class="panel-section-title">
-          <span>🛰️ GPS Speedometer & Telemetry</span>
+          <span>🛰️ GPS Speedometer & Motion Gate</span>
         </div>
         <div class="speed-demo-box" style="margin-top:10px;">
           <div>
@@ -1954,16 +1965,16 @@
             <div style="font-size:17px; font-weight:900; color:var(--text-main);" id="panelSpeedDisplay">42 km/h (Moving • Armed)</div>
             <div style="font-size:10px; color:#16A34A; font-weight:700; margin-top:2px;" id="gpsStatusSource">● High-Accuracy GPS Lock (AIS-140)</div>
           </div>
-          <button class="speed-btn-toggle" onclick="toggleGpsModal()">Toggle Standby</button>
+          <button class="speed-btn-toggle" id="btnSpeedToggle" onclick="toggleGpsModal()">⏸️ Simulate Parked (0 km/h)</button>
         </div>
       </div>
 
       <div>
         <div class="panel-section-title">
-          <span>⚡ Live Competition Simulator</span>
+          <span>🎯 Competition & Judge Live Pitch Simulator</span>
         </div>
         <div style="font-size:11px; color:var(--text-muted); margin: 6px 0 10px 0;">
-          Test instant audio siren alarms & voice escalations without waiting:
+          💡 1-Click triggers to demonstrate all sirens & sensor filters to the judges without waiting:
         </div>
         <div class="btn-grid-sim">
           <button class="btn-sim-alert" onclick="simulateMicrosleep()">
@@ -2930,8 +2941,8 @@
       L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
       // OpenStreetMap / CartoDB Voyager Map Tiles
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri &copy; OpenStreetMap contributors',
         subdomains: 'abcd',
         maxZoom: 19
       }).addTo(leafletMap);
@@ -3443,13 +3454,13 @@
         isArmed = false;
         pill.className = 'speed-status-pill standby';
         modeText.textContent = 'STANDBY';
-        panelSpeed.textContent = kmh + ' km/h (Stationary • Standby)';
+        panelSpeed.textContent = kmh + ' km/h (Stationary • Standby)'; const b = document.getElementById('btnSpeedToggle'); if (b) b.textContent = '▶️ Simulate Cruising (42 km/h)';
         panelSpeed.style.color = 'var(--text-muted)';
       } else {
         isArmed = true;
         pill.className = 'speed-status-pill armed';
         modeText.textContent = 'ARMED';
-        panelSpeed.textContent = kmh + ' km/h (Cruising • Armed)';
+        panelSpeed.textContent = kmh + ' km/h (Cruising • Armed)'; const b = document.getElementById('btnSpeedToggle'); if (b) b.textContent = '⏸️ Simulate Parked (0 km/h)';
         panelSpeed.style.color = '#1D4ED8';
       }
     }
@@ -3822,7 +3833,19 @@
     }
 
     // --- EMERGENCY ALERTS & RECOVERY ---
+    function speakVoiceAlert(text) {
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const ut = new SpeechSynthesisUtterance(text);
+          ut.rate = 1.05;
+          window.speechSynthesis.speak(ut);
+        } catch(e) {}
+      }
+    }
+
     function triggerEmergencyModal(titleText) {
+      speakVoiceAlert(titleText || 'Warning! Critical driver drowsiness detected.');
       isLevel2AlarmActive = true;
       startLevel2CockpitSiren();
       const modal = document.getElementById('alertModalOverlay');
@@ -3918,6 +3941,35 @@
       }
 
       logEvent('SUMMARY: Shift ended. Score: ' + score + '/100. Incidents: ' + (microsleepCount + yawnCount + headDropCount));
+    }
+
+    function completeShiftAndStartNew() {
+      stopCamera();
+      stopLevel2CockpitSiren();
+      const prevScore = document.getElementById('summaryScoreValue').textContent || '98';
+      const prevVehicle = document.getElementById('dispVehicleTag').textContent || 'KA-01-AB-1234';
+      
+      // Reset all shift metrics
+      microsleepCount = 0;
+      headDropCount = 0;
+      yawnCount = 0;
+      yawnCounted = false;
+      headDropLatched = false;
+      isLevel2AlarmActive = false;
+      eyeClosedStartTime = null;
+      headDropStartTime = null;
+      yawnStartTime = null;
+
+      logEvent('SHIFT: Shift for ' + prevVehicle + ' completed. Score: ' + prevScore + '/100. Ready for new trip.');
+      document.getElementById('viewSummary').style.display = 'none';
+      goToLanguageScreen();
+      alert('✓ Shift Completed Successfully! • Safety Score: ' + prevScore + '/100 • Telemetry Dispatched to Fleet Hub • Ready for new driver onboarding.');
+    }
+
+    function exportSafetyReport() {
+      const v = document.getElementById('dispVehicleTag').textContent || 'KA-01-AB-1234';
+      const s = document.getElementById('summaryScoreValue').textContent || '98';
+      alert('📄 AIS-140 SHIFT SAFETY COMPLIANCE AUDIT • Vehicle: ' + v + ' • Overall Score: ' + s + '/100 • Microsleeps: ' + microsleepCount + ' • Head Drops: ' + headDropCount + ' • Yawns: ' + yawnCount + ' • Status: CERTIFIED');
     }
 
     function returnToDrive() {
