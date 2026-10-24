@@ -2616,8 +2616,8 @@
             <span style="font-size:10px; color:var(--text-muted);">Triggers Level 2 Cockpit Siren</span>
           </button>
           <button class="btn-sim-alert" onclick="simulateHeadDrop()">
-            <strong style="color:var(--alert-red);">💤 Test Head Drop (1.3s)</strong>
-            <span style="font-size:10px; color:var(--text-muted);">1.3s Head bend buzzer alarm</span>
+            <strong style="color:var(--alert-red);">💤 Test Head Drop (1.1s)</strong>
+            <span style="font-size:10px; color:var(--text-muted);">1.1s Head bend buzzer alarm</span>
           </button>
           <button class="btn-sim-alert" onclick="simulateYawn()">
             <strong style="color:var(--status-amber);">🥱 Test Yawn Escalation</strong>
@@ -3706,7 +3706,7 @@
 
     // Detection Thresholds (strictly calibrated)
     const MICROSLEEP_MS = 1200; // strictly 1.20 seconds eye closure
-    const HEADDROP_MS = 1300;  // 1.30s sustained head bend required before siren
+    const HEADDROP_MS = 1100;  // 1.10s sustained head bend required before siren
     const YAWN_MAR_THRESHOLD = 0.48;
 
     // Timers & Counters
@@ -3722,6 +3722,7 @@
 
     // Smoothing & Posture Filters (EMA)
     let smoothedPitchRatio = 1.0;
+    let uprightPitchBaseline = 0.95;
     let smoothedZTilt = 0.0;
     let potholeCooldownUntil = 0;
     let isLevel2AlarmActive = false;
@@ -4786,33 +4787,36 @@
       const cheekSpan = Math.hypot((lm[454].x - lm[234].x) * w, (lm[454].y - lm[234].y) * h);
       const leftDist = Math.hypot((lm[1].x - lm[234].x) * w, (lm[1].y - lm[234].y) * h);
       const rightDist = Math.hypot((lm[454].x - lm[1].x) * w, (lm[454].y - lm[1].y) * h);
-      const totalCheekDist = Math.max(1.0, leftDist + rightDist);
+      const totalCheekDist = Math.max(1.0, cheekSpan);
       const yawAsymmetry = Math.abs(leftDist - rightDist) / totalCheekDist;
 
-      // Horizontal offset of nose tip relative to eyes center
-      const eyeMidX = (lm[33].x + lm[263].x) / 2.0;
-      const eyeSpan = Math.hypot((lm[263].x - lm[33].x) * w, (lm[263].y - lm[33].y) * h);
-      const noseHorizontalOffset = Math.abs(lm[1].x - eyeMidX) * w / Math.max(1.0, eyeSpan);
-
-      // Sensitive side turn detection: yaw asymmetry > 0.16 OR nose horizontal shift > 0.13
-      const isTurningHeadSideways = (yawAsymmetry > 0.16) || (noseHorizontalOffset > 0.13);
+      // Turning head sideways (mirror check > 20 deg): asymmetry > 0.30
+      const isTurningHeadSideways = yawAsymmetry > 0.30;
 
       // 5. ROLL TILT FILTER (Excessive ear-to-shoulder tilt)
       const eyeDx = (lm[263].x - lm[33].x) * w;
       const eyeDy = (lm[263].y - lm[33].y) * h;
       const rollAngle = Math.abs(Math.atan2(eyeDy, eyeDx) * 180 / Math.PI);
-      const isTiltingRoll = rollAngle > 22;
+      const isTiltingRoll = rollAngle > 25;
 
       // 6. PITCH & CHIN-DROP (NODDING OFF) DETECTION
       const upperFaceH = Math.hypot((lm[1].x - lm[10].x) * w, (lm[1].y - lm[10].y) * h);
       const lowerFaceH = Math.hypot((lm[152].x - lm[1].x) * w, (lm[152].y - lm[1].y) * h);
       const rawPitchRatio = lowerFaceH / Math.max(1.0, upperFaceH);
 
-      // Smooth moving average (70% previous, 30% current frame) to ignore transient twitches
-      smoothedPitchRatio = (smoothedPitchRatio * 0.70) + (rawPitchRatio * 0.30);
+      // Dynamic baseline calibration for upright head posture (calibrates to driver's natural face shape & camera angle)
+      if (rawPitchRatio > 0.78 && rawPitchRatio < 1.30 && !isTurningHeadSideways && !isTiltingRoll) {
+        uprightPitchBaseline = (uprightPitchBaseline * 0.96) + (rawPitchRatio * 0.04);
+      }
 
-      // Only trigger when the driver genuinely bends their head down (< 0.63) AND is NOT looking sideways
-      const isGenuineHeadDrop = (smoothedPitchRatio < 0.63) && !isTurningHeadSideways && !isTiltingRoll;
+      // Fast, responsive exponential moving average (50% weight on current frame)
+      smoothedPitchRatio = (smoothedPitchRatio * 0.50) + (rawPitchRatio * 0.50);
+
+      // Adaptive threshold: triggers when pitch drops below 74% of driver baseline (or < 0.71)
+      const pitchDropThreshold = Math.min(0.71, Math.max(0.60, uprightPitchBaseline * 0.74));
+
+      // Trigger only when driver genuinely bends head down AND is not turning head sideways
+      const isGenuineHeadDrop = (smoothedPitchRatio < pitchDropThreshold) && !isTurningHeadSideways && !isTiltingRoll;
 
       // Dynamic baseline calibration for diverse eye shapes
       if (currentEar > 0.22 && currentEar < 0.45) {
@@ -4844,8 +4848,16 @@
         cMar.className = isYawning ? 'metric-chip warning' : 'metric-chip';
       }
       if (cPitch) {
-        cPitch.textContent = isGenuineHeadDrop ? 'HEAD BENT DOWN!' : (isTurningHeadSideways ? 'SIDE LOOK / MIRROR' : 'POSTURE: OK');
-        cPitch.className = isGenuineHeadDrop ? 'metric-chip alert' : (isTurningHeadSideways ? 'metric-chip warning' : 'metric-chip');
+        if (isGenuineHeadDrop) {
+          cPitch.textContent = 'PITCH: ' + smoothedPitchRatio.toFixed(2) + ' (HEAD BENT!)';
+          cPitch.className = 'metric-chip alert';
+        } else if (isTurningHeadSideways) {
+          cPitch.textContent = 'YAW: ' + yawAsymmetry.toFixed(2) + ' (SIDE MIRROR)';
+          cPitch.className = 'metric-chip warning';
+        } else {
+          cPitch.textContent = 'PITCH: ' + smoothedPitchRatio.toFixed(2) + ' (OK)';
+          cPitch.className = 'metric-chip';
+        }
       }
 
       // --- FATIGUE DETECTION BUFFERS ---
@@ -4869,12 +4881,12 @@
           headDropCount++;
           document.getElementById('closureLineFill').style.backgroundColor = 'var(--alert-red)';
           triggerEmergencyModal(dict.criticalHeadDropTitle);
-          logEvent('LEVEL 2 EMERGENCY: Head Drop / Nodding confirmed (>1.3s). Incident #' + headDropCount);
-          syncFleetEmergency('Head Drop (>1.3s)');
+          logEvent('LEVEL 2 EMERGENCY: Head Drop / Nodding confirmed (>1.1s). Incident #' + headDropCount);
+          syncFleetEmergency('Head Drop (>1.1s)');
         }
       } else {
         headDropStartTime = null;
-        if (smoothedPitchRatio > 0.72) {
+        if (smoothedPitchRatio > (pitchDropThreshold + 0.08)) {
           headDropLatched = false;
         }
       }
