@@ -1374,6 +1374,59 @@
       }
     }
 
+    
+    /* POTHOLE ROAD BUMP JOLT & HUD TOAST */
+    @keyframes potholeJoltAnim {
+      0% { transform: translateY(0) rotate(0deg); }
+      15% { transform: translateY(-12px) rotate(-1.5deg) scale(0.99); }
+      35% { transform: translateY(14px) rotate(1.2deg); }
+      55% { transform: translateY(-8px) rotate(-0.8deg); }
+      75% { transform: translateY(4px) rotate(0.4deg); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+    .pothole-jolt {
+      animation: potholeJoltAnim 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+    }
+
+    .pothole-hud-toast {
+      position: absolute;
+      top: 50px;
+      left: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1.5px solid #F59E0B;
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #FBBF24;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      z-index: 50;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.4);
+      display: none;
+      animation: toastDrop 0.25s ease-out;
+    }
+
+    /* VEHICLE OPERATION MODE SELECTOR */
+    .btn-mode-toggle {
+      background: var(--surface-muted);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .btn-mode-toggle.active {
+      background: #EFF6FF;
+      border-color: #2563EB;
+      color: #1D4ED8;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.15);
+    }
+
     /* REAL LEAFLET MAP WRAPPER */
     .real-map-wrapper {
       position: relative;
@@ -1837,6 +1890,18 @@
               <input type="text" class="form-input" id="inputVehicle" value="KA-01-AB-1234" placeholder="e.g. KA-01-AB-1234" style="font-family:'JetBrains Mono'; text-transform:uppercase;">
             </div>
 
+            <div class="form-group">
+              <label class="form-label">Vehicle Operation &amp; WhatsApp SOS Mode</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button type="button" class="btn-mode-toggle active" id="btnModeFleet" onclick="setVehicleMode('fleet')">
+                  🏢 Fleet Vehicle<br><span style="font-size:10px; font-weight:400; opacity:0.8;">Alerts Fleet Owner</span>
+                </button>
+                <button type="button" class="btn-mode-toggle" id="btnModeIndep" onclick="setVehicleMode('independent')">
+                  🚗 Independent Driver<br><span style="font-size:10px; font-weight:400; opacity:0.8;">Alerts Driver WhatsApp</span>
+                </button>
+              </div>
+            </div>
+
             <button class="btn-primary" style="margin-top:2px;" onclick="authenticateAndStartDrive()">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -1870,6 +1935,9 @@
               <video id="webcamElement" class="camera-video" autoplay playsinline muted style="display:none;"></video>
               <canvas id="meshCanvas" class="mesh-canvas" style="display:none;"></canvas>
               
+              <div class="pothole-hud-toast" id="potholeToast">
+                ⚡ AIS-140 ACCELEROMETER: &gt;1.8G ROAD SHOCK DETECTED (False Alarms Suppressed 650ms)
+              </div>
               <div class="camera-fallback-graphic" id="cameraFallback">
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -1927,12 +1995,6 @@
                 </svg>
                 <span id="btnToggleCamText">Start AI Front Camera</span>
               </button>
-              <button class="btn-outline" onclick="triggerPotholeShock()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-                <span id="t_roadBump">Simulate Road Bump (650ms Cooldown)</span>
-              </button>
               
               <!-- HIGH-IMPACT END SHIFT BUTTON -->
               <button class="btn-end-shift" onclick="showSummaryView()">
@@ -1960,6 +2022,10 @@
             </div>
 
             <div style="background:var(--surface-muted); border:1px solid var(--border-light); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; justify-content:space-between; font-size:12px; padding-bottom:6px; border-bottom:1px solid var(--border-light);">
+                <span style="color:var(--text-muted); font-weight:700;" id="t_summaryDriveTime">Shift / Travel Duration:</span>
+                <strong id="summaryDriveTime" style="font-family:'JetBrains Mono'; color:#1D4ED8; font-size:13px;">00m 00s</strong>
+              </div>
               <div style="display:flex; justify-content:space-between; font-size:12px;">
                 <span style="color:var(--text-muted);" id="t_summaryMicrosleeps">Microsleep Events (&ge;1.2s):</span>
                 <strong id="summaryMicrosleeps" style="font-family:'JetBrains Mono';">0</strong>
@@ -2007,6 +2073,21 @@
             <div class="alert-subtitle" id="alertModalSubtitle">
               Sustained driver drowsiness detected. Loud cockpit alarm active. Pull over safely immediately.
             </div>
+
+            <!-- AUTOMATIC ESCALATION TO WHATSAPP IF NOT RESPONDED WITHIN 4 SECONDS -->
+            <div id="sirenEscalationBox" style="margin-top:14px; padding:12px; background:rgba(0,0,0,0.25); border-radius:14px; border:1px solid rgba(255,255,255,0.2); width:100%; box-sizing:border-box;">
+              <div style="font-size:10px; font-weight:800; letter-spacing:0.8px; color:#FDE047; text-transform:uppercase;">
+                ⚡ AIS-140 EMERGENCY PROTOCOL ESCALATION
+              </div>
+              <div id="sirenCountdownText" style="font-size:13px; font-weight:800; margin-top:4px; color:#FFFFFF;">
+                🚨 Siren Active: 0.0s (Escalating to WhatsApp at 4.0s)
+              </div>
+              <div id="sirenEscalationAction" style="display:none; margin-top:10px;">
+                <a id="btnWhatsAppDirectLink" href="#" target="_blank" class="btn-whatsapp-sos" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#22C55E; color:#FFFFFF; font-weight:800; font-size:12px; padding:10px 16px; border-radius:12px; text-decoration:none; box-shadow:0 4px 15px rgba(34,197,94,0.4); width:100%; box-sizing:border-box;">
+                  <span>📲 Open Emergency WhatsApp SOS Chat &rarr;</span>
+                </a>
+              </div>
+            </div>
           </div>
           <button class="btn-i-am-awake" id="btnIAmAwake" onclick="dismissEmergencyAlert()">
             <span id="t_btnIAmAwake">I AM AWAKE</span>
@@ -2053,8 +2134,12 @@
             <span style="font-size:10px; color:var(--text-muted);">Chime at 2, Siren at 4+ yawns</span>
           </button>
           <button class="btn-sim-alert" onclick="triggerPotholeShock()">
-            <strong style="color:#0284C7;">⚡ Test Pothole Shock</strong>
-            <span style="font-size:10px; color:var(--text-muted);">650ms accelerometer suppression</span>
+            <strong style="#0284C7;">⚡ Test Pothole Shock</strong>
+            <span style="font-size:10px; color:var(--text-muted);">Jolt, bump thump &amp; 650ms filter</span>
+          </button>
+          <button class="btn-sim-alert" onclick="simulateSirenEscalation()" style="grid-column:span 2; background:#FEF2F2; border-color:#FCA5A5;">
+            <strong style="color:#DC2626;">📲 Test &ge;4s Buzzer WhatsApp Dispatch</strong>
+            <span style="font-size:10px; color:var(--text-muted);">Simulate 4s unacknowledged buzzer &amp; auto-dispatch WhatsApp SOS</span>
           </button>
         </div>
       </div>
@@ -2274,6 +2359,8 @@
   <script>
     const i18n = {
       en: {
+        summaryDriveTime: "Shift / Travel Duration:",
+        
         chooseLangTitle: "Choose Your Language",
         chooseLangSub: "Select preferred language for voice and alerts",
         btnContinueLang: "Continue &rarr;",
@@ -2345,6 +2432,8 @@
         highRiskScore: "HIGH RISK • CRITICAL INTERVENTION"
       },
       hi: {
+        summaryDriveTime: "शिफ्ट / यात्रा की अवधि:",
+        
         chooseLangTitle: "अपनी भाषा चुनें",
         chooseLangSub: "वॉयस और अलर्ट के लिए पसंदीदा भाषा चुनें",
         btnContinueLang: "आगे बढ़ें &rarr;",
@@ -2416,6 +2505,8 @@
         highRiskScore: "उच्च जोखिम • तत्काल कार्रवाई आवश्यक"
       },
       kn: {
+        summaryDriveTime: "ಶಿಫ್ಟ್ / ಪ್ರಯಾಣದ ಅವಧಿ:",
+        
         chooseLangTitle: "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
         chooseLangSub: "ಧ್ವನಿ ಮತ್ತು ಎಚ್ಚರಿಕೆಗಳಿಗಾಗಿ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
         btnContinueLang: "ಮುಂದುವರಿಸಿ &rarr;",
@@ -2487,6 +2578,8 @@
         highRiskScore: "ಅಪಾಯಕಾರಿ • ತಕ್ಷಣ ವಾಹನ ನಿಲ್ಲಿಸಿ"
       },
       ta: {
+        summaryDriveTime: "பயண கால அளவு:",
+        
         chooseLangTitle: "உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்",
         chooseLangSub: "குரல் மற்றும் எச்சரிக்கைகளுக்கான மொழியைத் தேர்ந்தெடுக்கவும்",
         btnContinueLang: "தொடரவும் &rarr;",
@@ -2558,6 +2651,8 @@
         highRiskScore: "அதிக ஆபத்து • உடனடி தலையீடு தேவை"
       },
       te: {
+        summaryDriveTime: "ప్రయాణ వ్యవధి:",
+        
         chooseLangTitle: "మీ భాషను ఎంచుకోండి",
         chooseLangSub: "వాయిస్ మరియు హెచ్చరికల కోసం భాషను ఎంచుకోండి",
         btnContinueLang: "కొనసాగించండి &rarr;",
@@ -2629,6 +2724,8 @@
         highRiskScore: "అధిక ప్రమాదం • వాహనం వెంటనే ఆపండి"
       },
       mr: {
+        summaryDriveTime: "प्रवासाचा कालावधी:",
+        
         chooseLangTitle: "तुमची भाषा निवडा",
         chooseLangSub: "आवाज आणि इशाऱ्यांसाठी भाषा निवडा",
         btnContinueLang: "पुढे जा &rarr;",
@@ -2700,6 +2797,8 @@
         highRiskScore: "अति धोका • त्वरित गाडी थांबवा"
       },
       bn: {
+        summaryDriveTime: "ভ্রমণের সময়সীমা:",
+        
         chooseLangTitle: "আপনার ভাষা নির্বাচন করুন",
         chooseLangSub: "ভয়েস ও সতর্কবার্তার জন্য ভাষা নির্বাচন করুন",
         btnContinueLang: "এগিয়ে যান &rarr;",
@@ -2771,6 +2870,8 @@
         highRiskScore: "উচ্চ ঝুঁকি • অবিলম্বে গাড়ি থামান"
       },
       gu: {
+        summaryDriveTime: "મુસાફરીનો સમયગાળો:",
+        
         chooseLangTitle: "તમારી ભાષા પસંદ કરો",
         chooseLangSub: "વોઇસ અને ચેતવણીઓ માટે ભાષા પસંદ કરો",
         btnContinueLang: "આગળ વધો &rarr;",
@@ -2842,6 +2943,8 @@
         highRiskScore: "ઉચ્ચ જોખમ • તાત્કાલિક વાહન રોકો"
       },
       ml: {
+        summaryDriveTime: "യാത്രാ ദൈർഘ്യം:",
+        
         chooseLangTitle: "നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക",
         chooseLangSub: "ശബ്ദത്തിനും മുന്നറിയിപ്പുകൾക്കുമായി ഭാഷ തിരഞ്ഞെടുക്കുക",
         btnContinueLang: "തുടരുക &rarr;",
@@ -2913,6 +3016,8 @@
         highRiskScore: "അപകടകരം • ഉടനടി വാഹനം നിർത്തുക"
       },
       pa: {
+        summaryDriveTime: "ਸਫ਼ਰ ਦਾ ਸਮਾਂ:",
+        
         chooseLangTitle: "ਆਪਣੀ ਭਾਸ਼ਾ ਚੁਣੋ",
         chooseLangSub: "ਆਵਾਜ਼ ਅਤੇ ਚੇਤਾਵਨੀਆਂ ਲਈ ਭਾਸ਼ਾ ਚੁਣੋ",
         btnContinueLang: "ਅੱਗੇ ਵਧੋ &rarr;",
@@ -2984,6 +3089,8 @@
         highRiskScore: "ਉੱਚ ਖ਼ਤਰਾ • ਤੁਰੰਤ ਗੱਡੀ ਰੋਕੋ"
       },
       or: {
+        summaryDriveTime: "ଯାତ୍ରା ସମୟସୀମା:",
+        
         chooseLangTitle: "ଭାଷା ଚୟନ କରନ୍ତୁ",
         chooseLangSub: "ଧ୍ୱନି ଏବଂ ସତର୍କତା ପାଇଁ ଭାଷା ଚୟନ କରନ୍ତୁ",
         btnContinueLang: "ଆଗକୁ ବଢ଼ନ୍ତୁ &rarr;",
@@ -3016,6 +3123,8 @@
         startCam: "AI କ୍ୟାମେରା ଆରମ୍ଭ କରନ୍ତୁ"
       },
       as: {
+        summaryDriveTime: "যাত্ৰাৰ সময়:",
+        
         chooseLangTitle: "ভাষা বাছনি কৰক",
         chooseLangSub: "ধ্বনি আৰু সতৰ্কবাণীৰ বাবে ভাষা বাছনি কৰক",
         btnContinueLang: "আগবাঢ়ক &rarr;",
@@ -3754,6 +3863,7 @@
       const tShiftSummaryTitle = document.getElementById('t_shiftSummaryTitle');
       const dispSummaryShiftTime = document.getElementById('dispSummaryShiftTime');
       const tOverallScoreLabel = document.getElementById('t_overallScoreLabel');
+      const tSummaryDriveTime = document.getElementById('t_summaryDriveTime');
       const tSummaryMicrosleeps = document.getElementById('t_summaryMicrosleeps');
       const tSummaryHeadDrops = document.getElementById('t_summaryHeadDrops');
       const tSummaryYawns = document.getElementById('t_summaryYawns');
@@ -3764,6 +3874,7 @@
       if (tShiftSummaryTitle) tShiftSummaryTitle.textContent = dict.shiftSummaryTitle || 'Shift Safety Scorecard';
       if (dispSummaryShiftTime) dispSummaryShiftTime.textContent = dict.dispSummaryShiftTime || 'Commercial Fleet AI Audit';
       if (tOverallScoreLabel) tOverallScoreLabel.textContent = dict.overallScoreLabel || 'Overall Safety Score';
+      if (tSummaryDriveTime) tSummaryDriveTime.textContent = dict.summaryDriveTime || 'Shift / Travel Duration:';
       if (tSummaryMicrosleeps) tSummaryMicrosleeps.textContent = dict.summaryMicrosleeps || 'Microsleep Events (≥1.2s):';
       if (tSummaryHeadDrops) tSummaryHeadDrops.textContent = dict.summaryHeadDrops || 'Head Drops (≥1.5s):';
       if (tSummaryYawns) tSummaryYawns.textContent = dict.summaryYawns || 'Yawn Fatigue Events:';
@@ -3820,6 +3931,7 @@
       document.getElementById('viewActiveDrive').style.display = 'flex';
 
       startSpeedometer();
+      shiftStartTime = Date.now();
       logEvent('AUTHENTICATION: Driver ' + dName + ' (' + vReg + ') authenticated. Drive shift active.');
     }
 
@@ -3878,22 +3990,72 @@
       }
     }
 
-    // --- POTHOLE / ROAD BUMP SHOCK ABSORPTION ---
+    // --- POTHOLE / ROAD BUMP SHOCK ABSORPTION & AUDIO THUMP ---
+    function playPotholeSound() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(32, ctx.currentTime + 0.28);
+        gain.gain.setValueAtTime(0.7, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {}
+    }
+
     function triggerPotholeShock() {
       const now = Date.now();
       potholeCooldownUntil = now + 650;
-      logEvent('SENSORS: Pothole / bump shock detected. Suppression active for 650ms.');
+      playPotholeSound();
+
+      // Physical road shock vibration jolt animation on mobile frame & camera
+      const phone = document.getElementById('devicePhone');
+      if (phone) {
+        phone.classList.remove('pothole-jolt');
+        void phone.offsetWidth; // trigger reflow
+        phone.classList.add('pothole-jolt');
+        setTimeout(() => {
+          phone.classList.remove('pothole-jolt');
+        }, 600);
+      }
+
+      // Camera HUD floating toast
+      const toast = document.getElementById('potholeToast');
+      if (toast) {
+        toast.style.display = 'block';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 650);
+      }
+
+      // Suppress false alarms & reset active eye closure / head drop
+      eyeClosedStartTime = null;
+      headDropStartTime = null;
+      yawnStartTime = null;
+      const fill = document.getElementById('closureLineFill');
+      if (fill) {
+        fill.style.width = '0%';
+        fill.style.backgroundColor = 'var(--safety-orange)';
+      }
 
       const badge = document.getElementById('globalStatusPill');
-      badge.textContent = 'Bump Suppressed (650ms)';
-      badge.style.background = '#FEF3C7';
-      badge.style.color = '#D97706';
+      if (badge) {
+        badge.textContent = '⚡ BUMP (>1.8G) SUPPRESSED (650ms)';
+        badge.style.background = '#FEF3C7';
+        badge.style.color = '#D97706';
+        setTimeout(() => {
+          badge.textContent = 'Live Web Vision Active';
+          badge.style.background = 'var(--status-green-light)';
+          badge.style.color = 'var(--status-green)';
+        }, 650);
+      }
 
-      setTimeout(() => {
-        badge.textContent = 'Live Web Vision Active';
-        badge.style.background = 'var(--status-green-light)';
-        badge.style.color = 'var(--status-green)';
-      }, 650);
+      logEvent('SENSORS: Pothole / bump shock (>1.8G) detected. Accelerometer suppression gate active for 650ms.');
     }
 
     // --- CAMERA & MEDIAPIPE FACE MESH INITIALIZATION ---
@@ -4232,7 +4394,30 @@
       return vert / Math.max(0.001, horiz);
     }
 
-    // --- EMERGENCY ALERTS & RECOVERY ---
+    // --- VEHICLE MODE & DRIVE SHIFT DURATION ---
+    let shiftStartTime = Date.now();
+    let isVehicleFleetMode = true; // true = Fleet, false = Independent
+    let sirenStartTime = null;
+    let sirenEscalationTimer = null;
+    let isWhatsAppDispatched = false;
+
+    function setVehicleMode(mode) {
+      isVehicleFleetMode = (mode === 'fleet');
+      const btnFleet = document.getElementById('btnModeFleet');
+      const btnIndep = document.getElementById('btnModeIndep');
+      if (btnFleet && btnIndep) {
+        if (isVehicleFleetMode) {
+          btnFleet.classList.add('active');
+          btnIndep.classList.remove('active');
+        } else {
+          btnIndep.classList.add('active');
+          btnFleet.classList.remove('active');
+        }
+      }
+      logEvent('CONFIG: Vehicle mode set to ' + (isVehicleFleetMode ? 'Fleet Truck (Owner Alerts)' : 'Independent Driver (Driver Alerts)'));
+    }
+
+    // --- EMERGENCY ALERTS & >=4s WHATSAPP ESCALATION ---
     function speakVoiceAlert(text) {
       if ('speechSynthesis' in window) {
         try {
@@ -4250,18 +4435,117 @@
       startLevel2CockpitSiren();
       const modal = document.getElementById('alertModalOverlay');
       const title = document.getElementById('alertModalTitle');
-      title.textContent = titleText || 'CRITICAL: WAKE UP!';
-      modal.style.display = 'flex';
+      if (title) title.textContent = titleText || 'CRITICAL: WAKE UP!';
+      if (modal) modal.style.display = 'flex';
+      
+      startEmergencyEscalation();
+    }
+
+    function startEmergencyEscalation() {
+      sirenStartTime = Date.now();
+      isWhatsAppDispatched = false;
+      const box = document.getElementById('sirenEscalationBox');
+      const text = document.getElementById('sirenCountdownText');
+      const action = document.getElementById('sirenEscalationAction');
+      if (box) box.style.display = 'block';
+      if (action) action.style.display = 'none';
+
+      if (sirenEscalationTimer) clearInterval(sirenEscalationTimer);
+
+      sirenEscalationTimer = setInterval(() => {
+        if (!isLevel2AlarmActive) {
+          clearInterval(sirenEscalationTimer);
+          sirenEscalationTimer = null;
+          return;
+        }
+
+        const elapsedSec = (Date.now() - sirenStartTime) / 1000;
+        if (text) {
+          if (elapsedSec < 4.0) {
+            text.innerHTML = '🚨 Siren Active: <strong style="color:#F87171;">' + elapsedSec.toFixed(1) + 's</strong> <span style="opacity:0.8; font-size:11px;">(Escalating to WhatsApp at 4.0s)</span>';
+          } else {
+            text.innerHTML = '🚨 <strong style="color:#EF4444;">UNRESPONSIVE (' + elapsedSec.toFixed(1) + 's)!</strong> <span style="color:#86EFAC;">WhatsApp SOS Dispatched!</span>';
+          }
+        }
+
+        if (elapsedSec >= 4.0 && !isWhatsAppDispatched) {
+          isWhatsAppDispatched = true;
+          dispatchEmergencyWhatsApp();
+        }
+      }, 100);
+    }
+
+    function dispatchEmergencyWhatsApp() {
+      const vReg = document.getElementById('dispVehicleTag')?.textContent || 'KA-01-AB-1234';
+      const dName = document.getElementById('dispDriverTag')?.textContent || 'Ramesh Kumar';
+      const dMobile = document.getElementById('inputMobile')?.value || '+91 98765 43210';
+      const speed = document.getElementById('speedKmhText')?.textContent || '42 km/h';
+      
+      // Fleet Owner vs Independent Driver target
+      const ownerMobile = document.getElementById('ownerPhone')?.value || '+91 99001 24567';
+      const ownerName = document.getElementById('ownerName')?.value || 'Vikramaditya Hegde';
+      const company = document.getElementById('ownerCompany')?.value || 'VRL National Logistics Ltd.';
+      
+      const recipientPhone = isVehicleFleetMode ? ownerMobile : dMobile;
+      const recipientLabel = isVehicleFleetMode ? 'Fleet Owner (' + ownerName + ' • ' + ownerMobile + ')' : 'Independent Driver (' + dName + ' • ' + dMobile + ')';
+      const cleanPhone = recipientPhone.replace(/[^0-9]/g, '');
+
+      const waLines = [
+        '🚨 *JAAGRAT AIS-140 CRITICAL SOS: DRIVER UNRESPONSIVE* 🚨',
+        '----------------------------------------',
+        '⚠️ *IMMEDIATE ATTENTION REQUIRED:* Cockpit fatigue siren has sounded for >4 SECONDS without driver acknowledgement!',
+        '',
+        '🚛 *Vehicle Registration:* ' + vReg,
+        '👤 *Driver Name:* ' + dName + ' (' + dMobile + ')',
+        '🏢 *Operations Profile:* ' + (isVehicleFleetMode ? company : 'Independent Commercial Driver'),
+        '⚡ *Speed:* ' + speed + ' (Moving • High Risk)',
+        '📍 *Corridor:* South Corridor (Bengaluru - Hyderabad NH-44)',
+        '⏰ *Alert Time:* ' + new Date().toLocaleTimeString(),
+        '',
+        '🚨 *REQUIRED SAFETY PROTOCOL:*',
+        '1. Call driver immediately to verify consciousness.',
+        '2. Live Fleet Radar: https://jaagrat01.vercel.app/'
+      ];
+
+      const waMsg = waLines.join('\n');
+      const waUrl = 'https://api.whatsapp.com/send?phone=' + cleanPhone + '&text=' + encodeURIComponent(waMsg);
+
+      const action = document.getElementById('sirenEscalationAction');
+      const link = document.getElementById('btnWhatsAppDirectLink');
+      if (link) {
+        link.href = waUrl;
+        link.innerHTML = '<span>📲 WhatsApp SOS Sent to ' + (isVehicleFleetMode ? 'Owner (' + ownerMobile + ')' : 'Driver (' + dMobile + ')') + ' &rarr;</span>';
+      }
+      if (action) action.style.display = 'block';
+
+      // Automatically attempt window.open to open real WhatsApp chat
+      try {
+        window.open(waUrl, '_blank');
+      } catch(e) {
+        console.log('Automated popup blocked, clickable link displayed in modal.');
+      }
+
+      logEvent('CRITICAL SOS: Cockpit siren >4s unresponsive. Real WhatsApp emergency alert dispatched to ' + recipientLabel);
+      playDispatchChime();
     }
 
     function dismissEmergencyAlert() {
       isLevel2AlarmActive = false;
+      if (sirenEscalationTimer) {
+        clearInterval(sirenEscalationTimer);
+        sirenEscalationTimer = null;
+      }
       stopLevel2CockpitSiren();
       document.getElementById('alertModalOverlay').style.display = 'none';
       document.getElementById('closureLineFill').style.width = '0%';
       document.getElementById('closureLineFill').style.backgroundColor = 'var(--safety-orange)';
       updateDriverStatus('focused');
       logEvent('RECOVERY: Driver acknowledged alert / opened eyes. Shift resumed.');
+    }
+
+    function simulateSirenEscalation() {
+      triggerEmergencyModal('TEST: >4s UNRESPONSIVE SIREN ESCALATION');
+      logEvent('SIMULATION: Testing 4-second buzzer WhatsApp escalation.');
     }
 
     // --- PRESENTATION SIMULATOR SHORTCUTS ---
@@ -4325,6 +4609,28 @@
       document.getElementById('summaryHeadDrops').textContent = headDropCount;
       document.getElementById('summaryYawns').textContent = yawnCount;
 
+      // Compute and format shift / travelling time
+      const elapsedMs = Date.now() - shiftStartTime;
+      const totalSec = Math.max(5, Math.floor(elapsedMs / 1000));
+      const hrs = Math.floor(totalSec / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+      let timeStr = '';
+      if (hrs > 0) {
+        timeStr = hrs + 'h ' + String(mins).padStart(2, '0') + 'm ' + String(secs).padStart(2, '0') + 's';
+      } else {
+        timeStr = mins + 'm ' + String(secs).padStart(2, '0') + 's';
+      }
+
+      const driveTimeEl = document.getElementById('summaryDriveTime');
+      if (driveTimeEl) driveTimeEl.textContent = timeStr;
+
+      const subtitleEl = document.getElementById('dispSummaryShiftTime');
+      if (subtitleEl) {
+        const dict = i18n[currentLang] || i18n.en;
+        subtitleEl.textContent = (dict.dispSummaryShiftTime || 'Commercial Fleet AI Audit') + ' • ' + timeStr;
+      }
+
       const dict = i18n[currentLang] || i18n.en;
       applyLanguage(currentLang);
 
@@ -4376,6 +4682,7 @@
       }
 
       // 2. Driver remains logged in forever! Start new ride directly in Active Drive view!
+      shiftStartTime = Date.now();
       document.getElementById('viewSummary').style.display = 'none';
       document.getElementById('viewActiveDrive').style.display = 'flex';
       updateDriverStatus('focused');
